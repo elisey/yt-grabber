@@ -8,10 +8,10 @@ from loguru import logger
 
 from yt_grabber.config import Settings
 from yt_grabber.downloader import VideoDownloader
+from yt_grabber.extractors import ChannelExtractor, PlaylistExtractor
 from yt_grabber.playlist import PlaylistManager
-from yt_grabber.playlist_extractor import PlaylistExtractor
 
-app = typer.Typer(help="YouTube video downloader and playlist extractor")
+app = typer.Typer(help="YouTube video downloader and content extractor")
 
 
 def setup_logging() -> None:
@@ -25,8 +25,8 @@ def setup_logging() -> None:
     )
 
 
-@app.command()
-def extract(
+@app.command(name="extract-playlist")
+def extract_playlist(
     playlist_url: str = typer.Argument(
         ...,
         help="YouTube playlist URL or playlist ID (e.g., PLTj8zGbtGsjHQWtKYupS1CdZzrbbYKkoz)",
@@ -43,6 +43,29 @@ def extract(
         output_path = Path(output)
         extractor = PlaylistExtractor()
         extractor.extract_urls(playlist_url, output_path)
+    except Exception as e:
+        logger.error(f"Fatal error: {e}")
+        raise typer.Exit(1)
+
+
+@app.command(name="extract-channel")
+def extract_channel(
+    channel_url: str = typer.Argument(
+        ...,
+        help="YouTube channel URL, @handle, or channel ID (e.g., @ChannelName or UC...)",
+    ),
+    output: str = typer.Argument(
+        ...,
+        help="Output file path to save video URLs",
+    ),
+) -> None:
+    """Extract video URLs from a YouTube channel (regular videos only, oldest first)."""
+    setup_logging()
+
+    try:
+        output_path = Path(output)
+        extractor = ChannelExtractor()
+        extractor.extract_urls(channel_url, output_path)
     except Exception as e:
         logger.error(f"Fatal error: {e}")
         raise typer.Exit(1)
