@@ -1,7 +1,7 @@
 """Playlist file management for tracking downloaded videos."""
 
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 from loguru import logger
 
@@ -19,11 +19,11 @@ class PlaylistManager:
         """
         self.playlist_path = playlist_path
 
-    def read_urls(self) -> List[str]:
-        """Read undownloaded URLs from the playlist file.
+    def read_urls(self) -> List[Tuple[str, int]]:
+        """Read undownloaded URLs from the playlist file with their indices.
 
         Returns:
-            List of URLs that are not marked as downloaded and not removed
+            List of tuples (URL, index) where index is 1-based position in full playlist
 
         Raises:
             FileNotFoundError: If playlist file does not exist
@@ -33,15 +33,15 @@ class PlaylistManager:
 
         playlist = parse_playlist(str(self.playlist_path))
 
-        # Return only URLs that are not downloaded and not removed
-        urls = [
-            video.url
-            for video in playlist.videos
+        # Return URLs with their original indices (1-based)
+        urls_with_indices = [
+            (video.url, idx)
+            for idx, video in enumerate(playlist.videos, start=1)
             if not video.downloaded and not video.removed
         ]
 
-        logger.info(f"Found {len(urls)} URLs to download")
-        return urls
+        logger.info(f"Found {len(urls_with_indices)} URLs to download")
+        return urls_with_indices
 
     def mark_as_downloaded(self, url: str) -> None:
         """Mark a URL as downloaded.

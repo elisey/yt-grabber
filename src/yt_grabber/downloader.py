@@ -149,31 +149,31 @@ class VideoDownloader:
         Raises:
             Exception: If any download fails (stops entire process)
         """
-        urls = playlist_manager.read_urls()
+        urls_with_indices = playlist_manager.read_urls()
 
-        if not urls:
+        if not urls_with_indices:
             logger.warning("No URLs to download")
             return
 
-        logger.info(f"Starting download of {len(urls)} videos")
+        logger.info(f"Starting download of {len(urls_with_indices)} videos")
 
-        for idx, url in enumerate(urls, start=1):
-            logger.info(f"Progress: {idx}/{len(urls)}")
+        for progress_idx, (url, playlist_index) in enumerate(urls_with_indices, start=1):
+            logger.info(f"Progress: {progress_idx}/{len(urls_with_indices)} (playlist position: {playlist_index})")
 
             try:
-                # Download the video
-                self.download_video(url, video_index=idx)
+                # Download the video using its position in full playlist
+                self.download_video(url, video_index=playlist_index)
 
                 # Mark as downloaded
                 playlist_manager.mark_as_downloaded(url)
 
                 # Add delay before next download (except for last video)
-                if idx < len(urls):
+                if progress_idx < len(urls_with_indices):
                     self._random_delay()
 
             except Exception as e:
-                logger.error(f"Error downloading video {idx}/{len(urls)}: {e}")
+                logger.error(f"Error downloading video {progress_idx}/{len(urls_with_indices)}: {e}")
                 logger.error("Stopping download process due to error")
                 raise
 
-        logger.success(f"All {len(urls)} videos downloaded successfully!")
+        logger.success(f"All {len(urls_with_indices)} videos downloaded successfully!")
