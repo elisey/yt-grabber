@@ -9,5 +9,4 @@ wheels/
 # Virtual environments
 .venv
 download
-playlist.txt
 .env
