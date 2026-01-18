@@ -11,5 +11,3 @@ class Settings(BaseSettings):
     video_quality: Literal["720", "1080"] = "1080"
     min_delay: int = 1
     max_delay: int = 5
-    playlist_file: str = "playlist.txt"
-    download_dir: str = "download"

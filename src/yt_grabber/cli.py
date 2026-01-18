@@ -2,7 +2,6 @@
 
 import sys
 from pathlib import Path
-from typing import Optional
 
 import typer
 from loguru import logger
@@ -51,9 +50,9 @@ def extract(
 
 @app.command()
 def download(
-    playlist_file: Optional[str] = typer.Argument(
-        None,
-        help="Path to playlist file (default: from .env or playlist.txt)",
+    playlist_file: str = typer.Argument(
+        ...,
+        help="Path to playlist file",
     ),
 ) -> None:
     """Download videos from a playlist file."""
@@ -65,20 +64,15 @@ def download(
         logger.info(f"Video quality: {settings.video_quality}p")
         logger.info(f"Delay range: {settings.min_delay}-{settings.max_delay}s")
 
-        # Determine playlist file path
-        if playlist_file:
-            playlist_path = Path(playlist_file)
-            logger.info(f"Using playlist file from argument: {playlist_path}")
-        else:
-            playlist_path = Path(settings.playlist_file)
-            logger.info(f"Using default playlist file: {playlist_path}")
+        # Get playlist file path
+        playlist_path = Path(playlist_file)
+        logger.info(f"Using playlist file: {playlist_path}")
 
         # Initialize components
         playlist_manager = PlaylistManager(playlist_path)
-        downloader = VideoDownloader(settings)
+        downloader = VideoDownloader(settings, playlist_path)
 
         # Start downloading
-        logger.info(f"Download directory: {settings.download_dir}")
         downloader.download_playlist(playlist_manager)
 
     except FileNotFoundError as e:

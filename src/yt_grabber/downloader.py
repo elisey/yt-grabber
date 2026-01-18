@@ -1,9 +1,10 @@
 """YouTube video downloader using yt-dlp."""
 
+import csv
 import random
 import time
+from datetime import datetime
 from pathlib import Path
-from typing import List
 
 import yt_dlp
 from loguru import logger
@@ -15,17 +16,47 @@ from yt_grabber.playlist import PlaylistManager
 class VideoDownloader:
     """Downloads YouTube videos using yt-dlp."""
 
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, playlist_path: Path):
         """Initialize the video downloader.
 
         Args:
             settings: Application settings
+            playlist_path: Path to the playlist file
         """
         self.settings = settings
-        self.download_dir = Path(settings.download_dir)
+
+        # Create subdirectory based on playlist filename (without extension)
+        playlist_name = playlist_path.stem
+        self.download_dir = Path("download") / playlist_name
 
         # Create download directory if it doesn't exist
         self.download_dir.mkdir(parents=True, exist_ok=True)
+
+        # Initialize metadata CSV file
+        self.metadata_file = self.download_dir / "metadata.csv"
+        self._initialize_metadata_file()
+
+        logger.info(f"Download directory: {self.download_dir}")
+
+    def _initialize_metadata_file(self) -> None:
+        """Initialize metadata CSV file with headers if it doesn't exist."""
+        if not self.metadata_file.exists():
+            with open(self.metadata_file, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(["url", "filename", "timestamp"])
+            logger.info(f"Created metadata file: {self.metadata_file}")
+
+    def _append_metadata(self, url: str, filename: str) -> None:
+        """Append metadata row to CSV file.
+
+        Args:
+            url: Video URL
+            filename: Downloaded filename
+        """
+        timestamp = datetime.now().isoformat()
+        with open(self.metadata_file, "a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([url, filename, timestamp])
 
     def _get_ydl_opts(self) -> dict:
         """Get yt-dlp options based on settings.
@@ -70,15 +101,19 @@ class VideoDownloader:
                 video_id = info.get("id", "Unknown")
                 video_title = info.get("title", "Unknown")
                 filename = ydl.prepare_filename(info)
+                filename_only = Path(filename).name
 
                 # Calculate download time
                 download_time = time.time() - start_time
+
+                # Append to metadata CSV
+                self._append_metadata(url, filename_only)
 
                 # Log statistics
                 logger.success(f"Downloaded: {video_title}")
                 logger.info(f"Statistics:")
                 logger.info(f"  Video ID: {video_id}")
-                logger.info(f"  File: {Path(filename).name}")
+                logger.info(f"  File: {filename_only}")
                 logger.info(f"  Download time: {download_time:.2f}s")
 
         except Exception as e:
