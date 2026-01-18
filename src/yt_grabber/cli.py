@@ -1,15 +1,18 @@
 """Command-line interface for YouTube video downloader."""
 
 import sys
-from argparse import ArgumentParser
 from pathlib import Path
+from typing import Optional
 
+import typer
 from loguru import logger
 
 from yt_grabber.config import Settings
 from yt_grabber.downloader import VideoDownloader
 from yt_grabber.playlist import PlaylistManager
 from yt_grabber.playlist_extractor import PlaylistExtractor
+
+app = typer.Typer(help="YouTube video downloader and playlist extractor")
 
 
 def setup_logging() -> None:
@@ -23,19 +26,39 @@ def setup_logging() -> None:
     )
 
 
-def extract_playlist_command(args) -> None:
-    """Extract URLs from a YouTube playlist."""
+@app.command()
+def extract(
+    playlist_url: str = typer.Argument(
+        ...,
+        help="YouTube playlist URL or playlist ID (e.g., PLTj8zGbtGsjHQWtKYupS1CdZzrbbYKkoz)",
+    ),
+    output: str = typer.Argument(
+        ...,
+        help="Output file path to save video URLs",
+    ),
+) -> None:
+    """Extract video URLs from a YouTube playlist."""
+    setup_logging()
+
     try:
-        output_path = Path(args.output)
+        output_path = Path(output)
         extractor = PlaylistExtractor()
-        extractor.extract_urls(args.playlist_url, output_path)
+        extractor.extract_urls(playlist_url, output_path)
     except Exception as e:
         logger.error(f"Fatal error: {e}")
-        sys.exit(1)
+        raise typer.Exit(1)
 
 
-def download_command(args) -> None:
+@app.command()
+def download(
+    playlist_file: Optional[str] = typer.Argument(
+        None,
+        help="Path to playlist file (default: from .env or playlist.txt)",
+    ),
+) -> None:
     """Download videos from a playlist file."""
+    setup_logging()
+
     try:
         # Load settings
         settings = Settings()
@@ -43,8 +66,8 @@ def download_command(args) -> None:
         logger.info(f"Delay range: {settings.min_delay}-{settings.max_delay}s")
 
         # Determine playlist file path
-        if args.playlist_file:
-            playlist_path = Path(args.playlist_file)
+        if playlist_file:
+            playlist_path = Path(playlist_file)
             logger.info(f"Using playlist file from argument: {playlist_path}")
         else:
             playlist_path = Path(settings.playlist_file)
@@ -60,64 +83,21 @@ def download_command(args) -> None:
 
     except FileNotFoundError as e:
         logger.error(f"File not found: {e}")
-        sys.exit(1)
+        raise typer.Exit(1)
 
     except Exception as e:
         logger.error(f"Fatal error: {e}")
-        sys.exit(1)
+        raise typer.Exit(1)
 
 
 def main() -> None:
     """Main entry point for the CLI application."""
-    setup_logging()
-
-    parser = ArgumentParser(
-        description="YouTube video downloader and playlist extractor"
-    )
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
-
-    # Download command
-    download_parser = subparsers.add_parser(
-        "download",
-        help="Download videos from a playlist file",
-    )
-    download_parser.add_argument(
-        "playlist_file",
-        nargs="?",
-        help="Path to playlist file (default: from .env or playlist.txt)",
-    )
-
-    # Extract playlist command
-    extract_parser = subparsers.add_parser(
-        "extract",
-        help="Extract video URLs from a YouTube playlist",
-    )
-    extract_parser.add_argument(
-        "playlist_url",
-        help="YouTube playlist URL or playlist ID (e.g., PLJ49NV73ttruy7sqvirXaGL5CP-55cjgy)",
-    )
-    extract_parser.add_argument(
-        "output",
-        help="Output file path to save video URLs",
-    )
-
-    args = parser.parse_args()
-
-    # Show help if no command specified
-    if not args.command:
-        parser.print_help()
-        sys.exit(0)
-
-    # Handle commands
     try:
-        if args.command == "extract":
-            extract_playlist_command(args)
-        elif args.command == "download":
-            download_command(args)
-
+        app()
     except KeyboardInterrupt:
+        setup_logging()
         logger.warning("Interrupted by user")
-        sys.exit(130)
+        raise typer.Exit(130)
 
 
 if __name__ == "__main__":
