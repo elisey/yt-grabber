@@ -79,11 +79,12 @@ class VideoDownloader:
             "progress_hooks": [],
         }
 
-    def download_video(self, url: str) -> None:
+    def download_video(self, url: str, video_index: int) -> None:
         """Download a single video from URL.
 
         Args:
             url: YouTube video URL
+            video_index: Index of the video in the playlist (1-based)
 
         Raises:
             Exception: If download fails
@@ -101,7 +102,17 @@ class VideoDownloader:
                 video_id = info.get("id", "Unknown")
                 video_title = info.get("title", "Unknown")
                 filename = ydl.prepare_filename(info)
-                filename_only = Path(filename).name
+                original_path = Path(filename)
+                filename_only = original_path.name
+
+                # Rename file with index if enabled
+                if self.settings.index_videos:
+                    index_str = f"{video_index:02d}"
+                    new_filename = f"{index_str} {filename_only}"
+                    new_path = original_path.parent / new_filename
+                    original_path.rename(new_path)
+                    filename_only = new_filename
+                    logger.debug(f"Renamed file to: {new_filename}")
 
                 # Calculate download time
                 download_time = time.time() - start_time
@@ -151,7 +162,7 @@ class VideoDownloader:
 
             try:
                 # Download the video
-                self.download_video(url)
+                self.download_video(url, video_index=idx)
 
                 # Mark as downloaded
                 playlist_manager.mark_as_downloaded(url)
