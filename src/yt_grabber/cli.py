@@ -9,7 +9,9 @@ from loguru import logger
 from yt_grabber.config import Settings
 from yt_grabber.downloader import VideoDownloader
 from yt_grabber.extractors import ChannelExtractor, PlaylistExtractor
+from yt_grabber.models import SyncResult
 from yt_grabber.playlist import PlaylistManager
+from yt_grabber.sync import sync_playlist
 
 app = typer.Typer(help="YouTube video downloader and content extractor")
 
@@ -97,6 +99,78 @@ def download(
 
         # Start downloading
         downloader.download_playlist(playlist_manager)
+
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {e}")
+        raise typer.Exit(1)
+
+    except Exception as e:
+        logger.error(f"Fatal error: {e}")
+        raise typer.Exit(1)
+
+
+def format_sync_diff(result: SyncResult) -> None:
+    """Format and print sync diff result.
+
+    Args:
+        result: SyncResult dataclass containing sync results
+    """
+    logger.info("=" * 60)
+    logger.info("SYNC SUMMARY")
+    logger.info("=" * 60)
+
+    # Print added videos
+    if result.added_urls:
+        logger.info(f"✓ Added ({len(result.added_urls)} videos):")
+        for url in result.added_urls:
+            logger.info(f"  + {url}")
+    else:
+        logger.info("✓ No new videos added")
+
+    # Print removed videos
+    if result.removed_urls:
+        logger.info(f"✗ Removed ({len(result.removed_urls)} videos):")
+        for url in result.removed_urls:
+            logger.info(f"  - {url}")
+    else:
+        logger.info("✗ No videos removed")
+
+    # Print header changes
+    if result.header_changes:
+        logger.info("⚙ Header changes:")
+        for change in result.header_changes:
+            if change.field == "extraction_timestamp":
+                logger.info(f"  • {change.field}: updated to {change.new_value}")
+            else:
+                logger.info(f"  • {change.field}: {change.old_value} → {change.new_value}")
+    else:
+        logger.info("⚙ No header changes")
+
+    logger.info("\n" + "=" * 60)
+
+
+@app.command()
+def sync(
+    playlist_file: str = typer.Argument(
+        ...,
+        help="Path to playlist file",
+    ),
+) -> None:
+    """Sync playlist with its source and show diff."""
+    setup_logging()
+
+    try:
+        playlist_path = Path(playlist_file)
+
+        if not playlist_path.exists():
+            logger.error(f"Playlist file not found: {playlist_path}")
+            raise typer.Exit(1)
+
+        # Sync the playlist
+        result = sync_playlist(str(playlist_path))
+
+        # Format and print diff
+        format_sync_diff(result)
 
     except FileNotFoundError as e:
         logger.error(f"File not found: {e}")

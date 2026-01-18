@@ -5,12 +5,11 @@ from typing import List
 
 from loguru import logger
 
+from yt_grabber.playlist_manager import build_playlist, parse_playlist
+
 
 class PlaylistManager:
     """Manages reading and updating playlist files with download tracking."""
-
-    DOWNLOADED_MARKER = "#"
-    HEADER_MARKER = ":"
 
     def __init__(self, playlist_path: Path):
         """Initialize playlist manager.
@@ -24,7 +23,7 @@ class PlaylistManager:
         """Read undownloaded URLs from the playlist file.
 
         Returns:
-            List of URLs that are not marked as downloaded
+            List of URLs that are not marked as downloaded and not removed
 
         Raises:
             FileNotFoundError: If playlist file does not exist
@@ -32,33 +31,20 @@ class PlaylistManager:
         if not self.playlist_path.exists():
             raise FileNotFoundError(f"Playlist file not found: {self.playlist_path}")
 
-        urls = []
-        with open(self.playlist_path, "r") as f:
-            for line_num, line in enumerate(f, start=1):
-                line = line.strip()
+        playlist = parse_playlist(str(self.playlist_path))
 
-                # Skip empty lines
-                if not line:
-                    continue
-
-                # Skip header lines (marked with :)
-                if line.startswith(self.HEADER_MARKER):
-                    logger.debug(f"Line {line_num}: Header line, skipping")
-                    continue
-
-                # Skip already downloaded URLs (marked with #)
-                if line.startswith(self.DOWNLOADED_MARKER):
-                    logger.debug(f"Line {line_num}: Already downloaded, skipping")
-                    continue
-
-                urls.append(line)
-                logger.debug(f"Line {line_num}: Added URL to queue")
+        # Return only URLs that are not downloaded and not removed
+        urls = [
+            video.url
+            for video in playlist.videos
+            if not video.downloaded and not video.removed
+        ]
 
         logger.info(f"Found {len(urls)} URLs to download")
         return urls
 
     def mark_as_downloaded(self, url: str) -> None:
-        """Mark a URL as downloaded by prepending # to its line.
+        """Mark a URL as downloaded.
 
         Args:
             url: The URL to mark as downloaded
@@ -66,25 +52,23 @@ class PlaylistManager:
         Raises:
             ValueError: If URL is not found in the playlist file
         """
-        # Read all lines from the file
-        with open(self.playlist_path, "r") as f:
-            lines = f.readlines()
+        playlist = parse_playlist(str(self.playlist_path))
 
-        # Find and mark the URL
+        # Find and mark the video as downloaded
         url_found = False
-        for i, line in enumerate(lines):
-            stripped = line.strip()
-            if stripped == url:
-                lines[i] = f"{self.DOWNLOADED_MARKER} {line}"
+        for video in playlist.videos:
+            if video.url == url:
+                video.downloaded = True
+                # Clear added marker once downloaded
+                video.added = False
                 url_found = True
-                logger.debug(f"Marked URL as downloaded at line {i + 1}")
+                logger.debug(f"Marked URL as downloaded: {url}")
                 break
 
         if not url_found:
             raise ValueError(f"URL not found in playlist: {url}")
 
-        # Write back to file
-        with open(self.playlist_path, "w") as f:
-            f.writelines(lines)
+        # Save updated playlist
+        build_playlist(playlist, str(self.playlist_path))
 
         logger.success(f"Updated playlist file: {self.playlist_path}")
