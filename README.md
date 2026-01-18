@@ -222,7 +222,7 @@ https://www.youtube.com/watch?v=xxxxx,01 Video Title.mp4,2026-01-18T14:30:00
 
 ## Requirements
 
-- Python 3.14+
+- Python 3.12+
 - uv package manager
 - Dependencies:
   - yt-dlp (video extraction and download)

@@ -1,6 +1,6 @@
 [project]
 name = "yt-grabber"
-version = "0.1.0"
+version = "0.1.1"
 description = "A CLI tool for downloading videos from YT playlists and channels"
 authors = [
     {name = "Elisei"}
@@ -12,13 +12,15 @@ classifiers = [
     "Intended Audience :: End Users/Desktop",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Topic :: Multimedia :: Video",
     "Environment :: Console",
     "Operating System :: OS Independent",
 ]
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "loguru>=0.7.3",
     "pydantic-settings>=2.12.0",
