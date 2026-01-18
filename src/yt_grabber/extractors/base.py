@@ -1,11 +1,15 @@
 """Base extractor class for YouTube content."""
 
 from abc import ABC, abstractmethod
+from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import Dict, List, Tuple
 
 import yt_dlp
 from loguru import logger
+
+from yt_grabber import __version__
+from yt_grabber.playlist_header import HeaderMetadata, PlaylistFileHeader
 
 
 class BaseExtractor(ABC):
@@ -23,14 +27,23 @@ class BaseExtractor(ABC):
         """
         pass
 
-    def _extract_video_ids(self, url: str) -> List[str]:
-        """Extract video IDs from YouTube URL.
+    @abstractmethod
+    def get_source_type(self) -> str:
+        """Get the source type name.
+
+        Returns:
+            Source type (e.g., 'playlist' or 'channel')
+        """
+        pass
+
+    def _extract_video_ids(self, url: str) -> Tuple[List[str], str]:
+        """Extract video IDs and title from YouTube URL.
 
         Args:
             url: YouTube URL (playlist or channel)
 
         Returns:
-            List of video IDs
+            Tuple of (list of video IDs, title)
 
         Raises:
             ValueError: If no videos found
@@ -52,6 +65,9 @@ class BaseExtractor(ABC):
                 if "entries" not in info:
                     raise ValueError("No videos found")
 
+                # Extract title
+                title = info.get("title", "Unknown")
+
                 # Extract video IDs
                 video_ids = []
                 for entry in info["entries"]:
@@ -63,7 +79,7 @@ class BaseExtractor(ABC):
                 if not video_ids:
                     raise ValueError("No valid video IDs found")
 
-                return video_ids
+                return video_ids, title
 
         except Exception as e:
             logger.error(f"Failed to extract: {e}")
@@ -80,7 +96,7 @@ class BaseExtractor(ABC):
             Exception: If extraction fails
         """
         url = self.normalize_url(url_input)
-        video_ids = self._extract_video_ids(url)
+        video_ids, title = self._extract_video_ids(url)
 
         # Convert IDs to URLs
         urls = [f"https://www.youtube.com/watch?v={vid}" for vid in video_ids]
@@ -88,14 +104,29 @@ class BaseExtractor(ABC):
         # Subclasses can transform the URL list
         urls = self.transform_urls(urls)
 
-        # Save to file
+        # Create header metadata
+        metadata = HeaderMetadata(
+            source_url=url,
+            extraction_timestamp=datetime.now().isoformat(),
+            total_videos=len(urls),
+            source_type=self.get_source_type(),
+            title=title,
+            extractor_version=__version__,
+        )
+
+        # Save to file with header
         with open(output_file, "w") as f:
-            for url in urls:
-                f.write(f"{url}\n")
+            # Write metadata header
+            PlaylistFileHeader.write_header(f, metadata)
+
+            # Write video URLs
+            for video_url in urls:
+                f.write(f"{video_url}\n")
 
         # Log statistics
         logger.success(f"Extraction completed")
         logger.info(f"Statistics:")
+        logger.info(f"  Title: {title}")
         logger.info(f"  Videos found: {len(urls)}")
         logger.info(f"  Saved to: {output_file}")
 

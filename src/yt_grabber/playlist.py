@@ -10,6 +10,7 @@ class PlaylistManager:
     """Manages reading and updating playlist files with download tracking."""
 
     DOWNLOADED_MARKER = "#"
+    HEADER_MARKER = ":"
 
     def __init__(self, playlist_path: Path):
         """Initialize playlist manager.
@@ -38,6 +39,11 @@ class PlaylistManager:
 
                 # Skip empty lines
                 if not line:
+                    continue
+
+                # Skip header lines (marked with :)
+                if line.startswith(self.HEADER_MARKER):
+                    logger.debug(f"Line {line_num}: Header line, skipping")
                     continue
 
                 # Skip already downloaded URLs (marked with #)

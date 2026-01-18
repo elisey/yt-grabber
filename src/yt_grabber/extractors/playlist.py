@@ -6,6 +6,9 @@ from yt_grabber.extractors.base import BaseExtractor
 class PlaylistExtractor(BaseExtractor):
     """Extracts video URLs from YouTube playlists."""
 
+    def get_source_type(self) -> str:
+        return "playlist"
+
     def normalize_url(self, url_input: str) -> str:
         """Normalize playlist input to full URL.
 

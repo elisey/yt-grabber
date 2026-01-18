@@ -8,6 +8,9 @@ from yt_grabber.extractors.base import BaseExtractor
 class ChannelExtractor(BaseExtractor):
     """Extracts video URLs from YouTube channels (regular videos only)."""
 
+    def get_source_type(self) -> str:
+        return "channel"
+
     def normalize_url(self, url_input: str) -> str:
         """Normalize channel input to full URL with /videos tab.
 
