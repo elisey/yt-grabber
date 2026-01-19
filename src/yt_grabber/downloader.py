@@ -166,11 +166,12 @@ class VideoDownloader:
         logger.info(f"Waiting {delay:.2f} seconds before next download...")
         time.sleep(delay)
 
-    def download_playlist(self, playlist_manager: PlaylistManager) -> None:
+    def download_playlist(self, playlist_manager: PlaylistManager, delay_after_last: bool = False) -> None:
         """Download all videos from a playlist file.
 
         Args:
             playlist_manager: PlaylistManager instance
+            delay_after_last: If True, add delay after last video (for batch processing)
 
         Raises:
             Exception: If any download fails (stops entire process)
@@ -195,8 +196,14 @@ class VideoDownloader:
                     # Mark as downloaded
                     playlist_manager.mark_as_downloaded(url)
 
-                    # Add delay before next download (except for last video)
-                    if progress_idx < len(urls_with_indices):
+                    # Add delay after download
+                    is_last_video = (progress_idx == len(urls_with_indices))
+
+                    if not is_last_video:
+                        # Always delay between videos in same playlist
+                        self._random_delay()
+                    elif delay_after_last:
+                        # Delay after last video if requested (batch mode)
                         self._random_delay()
 
                 except Exception as e:

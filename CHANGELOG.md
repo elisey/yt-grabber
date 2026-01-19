@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-01-18
+
+### Added
+- **New command:** `download-batch` for processing multiple playlists
+  - Batch download from directory with glob pattern support
+  - Sort order support (ascending/descending)
+  - Automatic playlist processing with error handling
+- Telegram notifications for batch operations:
+  - Notification when each playlist starts (with progress counter)
+  - Notification on batch completion
+  - Notification on batch failure with context
+- Glob pattern matching for playlist selection (e.g., `gmm*.txt`, `season_*.txt`)
+
+### Changed
+- Enhanced notification system with batch operation support
+- Improved error handling for batch operations (halt on first failure)
+
+### Use Cases
+- Download entire TV show seasons in order
+- Process multiple music playlist files
+- Batch process all playlists in a directory
+
 ## [0.1.4] - 2026-01-18
 
 ### Added

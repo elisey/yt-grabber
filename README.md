@@ -107,6 +107,48 @@ uv run yt-grabber download my_playlist.txt
 - Creates a metadata CSV file with download information
 - Stops on any error
 
+### Download Batch
+
+Download videos from multiple playlist files in a directory:
+
+```bash
+uv run yt-grabber download-batch [directory] [--pattern PATTERN] [--sort {asc,desc}]
+```
+
+**Arguments:**
+- `directory` - Directory containing playlist files (default: current directory `.`)
+- `--pattern` / `-p` - Glob pattern for filtering files (default: `*.txt`)
+- `--sort` / `-s` - Sort order: `asc` (ascending, default) or `desc` (descending)
+
+**Examples:**
+
+```bash
+# Download all .txt playlists in current directory (ascending order)
+uv run yt-grabber download-batch
+
+# Download all playlists in 'playlists' directory
+uv run yt-grabber download-batch playlists/
+
+# Download only playlists matching pattern
+uv run yt-grabber download-batch playlists/ --pattern "gmm*.txt"
+
+# Download season playlists in descending order
+uv run yt-grabber download-batch . --pattern "season*.txt" --sort desc
+```
+
+**What it does:**
+- Finds all playlist files matching the pattern
+- Sorts files alphabetically (ascending or descending)
+- Processes each playlist in order
+- Sends Telegram notification when starting each playlist (if enabled)
+- Stops immediately if any playlist fails
+- Sends summary notification when all complete
+
+**Use cases:**
+- Download entire TV show seasons: `season_01.txt`, `season_02.txt`, etc.
+- Process multiple music playlists: `gmm_s27.txt`, `gmm_s28.txt`, etc.
+- Batch process all playlists in a directory
+
 ## Configuration
 
 Create a `.env` file in the project root:

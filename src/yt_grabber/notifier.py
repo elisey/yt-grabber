@@ -90,3 +90,65 @@ class TelegramNotifier:
             asyncio.run(self._send_message(message))
         except Exception as e:
             logger.error(f"Error in send_error_notification: {e}")
+
+    def send_playlist_started_notification(self, playlist_name: str, current: int, total: int) -> None:
+        """Send notification when starting a new playlist.
+
+        Args:
+            playlist_name: Name of the playlist
+            current: Current playlist number
+            total: Total number of playlists
+        """
+        if not self.enabled:
+            return
+
+        message = (
+            f"📥 *Starting Download* \\[{current}/{total}]\n\n"
+            f"Playlist: `{playlist_name}`"
+        )
+
+        try:
+            asyncio.run(self._send_message(message))
+        except Exception as e:
+            logger.error(f"Error in send_playlist_started_notification: {e}")
+
+    def send_batch_success_notification(self, total_playlists: int) -> None:
+        """Send batch completion success notification.
+
+        Args:
+            total_playlists: Number of playlists downloaded
+        """
+        if not self.enabled:
+            return
+
+        message = (
+            "✅ *Batch Complete*\n\n"
+            f"Successfully downloaded *{total_playlists}* playlists"
+        )
+
+        try:
+            asyncio.run(self._send_message(message))
+        except Exception as e:
+            logger.error(f"Error in send_batch_success_notification: {e}")
+
+    def send_batch_error_notification(self, error_context: str) -> None:
+        """Send batch download error notification.
+
+        Args:
+            error_context: Error context including playlist info
+        """
+        if not self.enabled:
+            return
+
+        # Escape markdown special characters
+        escaped_context = error_context.replace("_", "\\_").replace("*", "\\*").replace("`", "\\`")
+
+        message = (
+            "❌ *Batch Download Failed*\n\n"
+            f"{escaped_context}"
+        )
+
+        try:
+            asyncio.run(self._send_message(message))
+        except Exception as e:
+            logger.error(f"Error in send_batch_error_notification: {e}")

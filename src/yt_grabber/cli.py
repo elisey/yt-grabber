@@ -6,6 +6,7 @@ from pathlib import Path
 import typer
 from loguru import logger
 
+from yt_grabber.batch import BatchDownloader
 from yt_grabber.config import Settings
 from yt_grabber.downloader import VideoDownloader
 from yt_grabber.extractors import ChannelExtractor, PlaylistExtractor
@@ -102,6 +103,72 @@ def download(
 
     except FileNotFoundError as e:
         logger.error(f"File not found: {e}")
+        raise typer.Exit(1)
+
+    except Exception as e:
+        logger.error(f"Fatal error: {e}")
+        raise typer.Exit(1)
+
+
+@app.command(name="download-batch")
+def download_batch(
+    directory: str = typer.Argument(
+        ".",
+        help="Directory containing playlist files",
+    ),
+    pattern: str = typer.Option(
+        "*.txt",
+        "--pattern",
+        "-p",
+        help="Glob pattern for filtering playlist files (e.g., 'gmm*.txt', 'season_*.txt')",
+    ),
+    sort: str = typer.Option(
+        "asc",
+        "--sort",
+        "-s",
+        help="Sort order: 'asc' for ascending, 'desc' for descending",
+    ),
+) -> None:
+    """Download videos from multiple playlist files in a directory.
+
+    Processes all playlist files matching the pattern in the specified directory.
+    Stops on first error.
+    """
+    setup_logging()
+
+    try:
+        # Validate sort option
+        if sort not in ["asc", "desc"]:
+            logger.error(f"Invalid sort option: {sort}. Use 'asc' or 'desc'")
+            raise typer.Exit(1)
+
+        # Load settings
+        settings = Settings()
+        logger.info(f"Video quality: {settings.video_quality}p")
+        logger.info(f"Delay range: {settings.min_delay}-{settings.max_delay}s")
+
+        # Get directory path
+        dir_path = Path(directory)
+        logger.info(f"Directory: {dir_path}")
+        logger.info(f"Pattern: {pattern}")
+        logger.info(f"Sort: {sort}ending")
+
+        # Initialize batch downloader
+        batch_downloader = BatchDownloader(settings)
+
+        # Start batch download
+        batch_downloader.download_all_playlists(
+            directory=dir_path,
+            pattern=pattern,
+            sort_order=sort  # type: ignore
+        )
+
+    except FileNotFoundError as e:
+        logger.error(f"Error: {e}")
+        raise typer.Exit(1)
+
+    except NotADirectoryError as e:
+        logger.error(f"Error: {e}")
         raise typer.Exit(1)
 
     except Exception as e:
