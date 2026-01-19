@@ -12,3 +12,5 @@ class Settings(BaseSettings):
     min_delay: int = 30
     max_delay: int = 60
     index_videos: bool = True
+    retry_attempts: int = 1
+    retry_delay: int = 300

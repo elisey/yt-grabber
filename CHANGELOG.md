@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-01-18
+
+### Added
+- Retry mechanism for failed video downloads
+- New configuration options:
+  - `RETRY_ATTEMPTS` - Number of retry attempts per video (default: 1)
+  - `RETRY_DELAY` - Delay in seconds before retry (default: 300 = 5 minutes)
+- Clear logging for retry attempts
+
+### Changed
+- Download errors now trigger automatic retries before failing
+- HTTP 403 and other temporary errors can be recovered with retry mechanism
+
 ## [0.1.2] - 2026-01-18
 
 ### Fixed

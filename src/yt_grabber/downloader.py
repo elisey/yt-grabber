@@ -80,56 +80,73 @@ class VideoDownloader:
         }
 
     def download_video(self, url: str, video_index: int) -> None:
-        """Download a single video from URL.
+        """Download a single video from URL with retry mechanism.
 
         Args:
             url: YouTube video URL
             video_index: Index of the video in the playlist (1-based)
 
         Raises:
-            Exception: If download fails
+            Exception: If download fails after all retry attempts
         """
-        logger.info(f"Starting download: {url}")
-        start_time = time.time()
+        max_attempts = self.settings.retry_attempts + 1  # Initial attempt + retries
 
-        ydl_opts = self._get_ydl_opts()
+        for attempt in range(1, max_attempts + 1):
+            try:
+                if attempt > 1:
+                    logger.warning(f"Retry attempt {attempt - 1}/{self.settings.retry_attempts} for: {url}")
+                else:
+                    logger.info(f"Starting download: {url}")
 
-        try:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(url, download=True)
+                start_time = time.time()
+                ydl_opts = self._get_ydl_opts()
 
-                # Extract video information
-                video_id = info.get("id", "Unknown")
-                video_title = info.get("title", "Unknown")
-                filename = ydl.prepare_filename(info)
-                original_path = Path(filename)
-                filename_only = original_path.name
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=True)
 
-                # Rename file with index if enabled
-                if self.settings.index_videos:
-                    index_str = f"{video_index:02d}"
-                    new_filename = f"{index_str} {filename_only}"
-                    new_path = original_path.parent / new_filename
-                    original_path.rename(new_path)
-                    filename_only = new_filename
-                    logger.debug(f"Renamed file to: {new_filename}")
+                    # Extract video information
+                    video_id = info.get("id", "Unknown")
+                    video_title = info.get("title", "Unknown")
+                    filename = ydl.prepare_filename(info)
+                    original_path = Path(filename)
+                    filename_only = original_path.name
 
-                # Calculate download time
-                download_time = time.time() - start_time
+                    # Rename file with index if enabled
+                    if self.settings.index_videos:
+                        index_str = f"{video_index:02d}"
+                        new_filename = f"{index_str} {filename_only}"
+                        new_path = original_path.parent / new_filename
+                        original_path.rename(new_path)
+                        filename_only = new_filename
+                        logger.debug(f"Renamed file to: {new_filename}")
 
-                # Append to metadata CSV
-                self._append_metadata(url, filename_only)
+                    # Calculate download time
+                    download_time = time.time() - start_time
 
-                # Log statistics
-                logger.success(f"Downloaded: {video_title}")
-                logger.info(f"Statistics:")
-                logger.info(f"  Video ID: {video_id}")
-                logger.info(f"  File: {filename_only}")
-                logger.info(f"  Download time: {download_time:.2f}s")
+                    # Append to metadata CSV
+                    self._append_metadata(url, filename_only)
 
-        except Exception as e:
-            logger.error(f"Failed to download {url}: {e}")
-            raise
+                    # Log statistics
+                    logger.success(f"Downloaded: {video_title}")
+                    logger.info(f"Statistics:")
+                    logger.info(f"  Video ID: {video_id}")
+                    logger.info(f"  File: {filename_only}")
+                    logger.info(f"  Download time: {download_time:.2f}s")
+
+                    # Success - break out of retry loop
+                    return
+
+            except Exception as e:
+                logger.error(f"Failed to download {url}: {e}")
+
+                # Check if we should retry
+                if attempt < max_attempts:
+                    logger.warning(f"Waiting {self.settings.retry_delay} seconds before retry...")
+                    time.sleep(self.settings.retry_delay)
+                else:
+                    # All attempts failed
+                    logger.error(f"All {max_attempts} attempts failed for {url}")
+                    raise
 
     def _random_delay(self) -> None:
         """Wait for a random delay between min_delay and max_delay."""

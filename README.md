@@ -123,6 +123,8 @@ Available settings:
 | `MIN_DELAY` | Minimum delay between downloads (seconds) | `1` |
 | `MAX_DELAY` | Maximum delay between downloads (seconds) | `5` |
 | `INDEX_VIDEOS` | Add numeric prefix to filenames | `false` |
+| `RETRY_ATTEMPTS` | Number of retry attempts per video | `1` |
+| `RETRY_DELAY` | Delay before retry (seconds) | `300` |
 
 ## Playlist File Format
 
