@@ -10,6 +10,7 @@ import yt_dlp
 from loguru import logger
 
 from yt_grabber.config import Settings
+from yt_grabber.notifier import TelegramNotifier
 from yt_grabber.playlist import PlaylistManager
 
 
@@ -24,6 +25,7 @@ class VideoDownloader:
             playlist_path: Path to the playlist file
         """
         self.settings = settings
+        self.playlist_path = playlist_path
 
         # Create subdirectory based on playlist filename (without extension)
         playlist_name = playlist_path.stem
@@ -35,6 +37,13 @@ class VideoDownloader:
         # Initialize metadata CSV file
         self.metadata_file = self.download_dir / "metadata.csv"
         self._initialize_metadata_file()
+
+        # Initialize Telegram notifier
+        self.notifier = TelegramNotifier(
+            bot_token=settings.telegram_bot_token,
+            chat_id=settings.telegram_chat_id,
+            enabled=settings.telegram_notifications_enabled
+        )
 
         logger.info(f"Download directory: {self.download_dir}")
 
@@ -167,6 +176,7 @@ class VideoDownloader:
             Exception: If any download fails (stops entire process)
         """
         urls_with_indices = playlist_manager.read_urls()
+        playlist_name = self.playlist_path.stem
 
         if not urls_with_indices:
             logger.warning("No URLs to download")
@@ -174,23 +184,34 @@ class VideoDownloader:
 
         logger.info(f"Starting download of {len(urls_with_indices)} videos")
 
-        for progress_idx, (url, playlist_index) in enumerate(urls_with_indices, start=1):
-            logger.info(f"Progress: {progress_idx}/{len(urls_with_indices)} (playlist position: {playlist_index})")
+        try:
+            for progress_idx, (url, playlist_index) in enumerate(urls_with_indices, start=1):
+                logger.info(f"Progress: {progress_idx}/{len(urls_with_indices)} (playlist position: {playlist_index})")
 
-            try:
-                # Download the video using its position in full playlist
-                self.download_video(url, video_index=playlist_index)
+                try:
+                    # Download the video using its position in full playlist
+                    self.download_video(url, video_index=playlist_index)
 
-                # Mark as downloaded
-                playlist_manager.mark_as_downloaded(url)
+                    # Mark as downloaded
+                    playlist_manager.mark_as_downloaded(url)
 
-                # Add delay before next download (except for last video)
-                if progress_idx < len(urls_with_indices):
-                    self._random_delay()
+                    # Add delay before next download (except for last video)
+                    if progress_idx < len(urls_with_indices):
+                        self._random_delay()
 
-            except Exception as e:
-                logger.error(f"Error downloading video {progress_idx}/{len(urls_with_indices)}: {e}")
-                logger.error("Stopping download process due to error")
-                raise
+                except Exception as e:
+                    logger.error(f"Error downloading video {progress_idx}/{len(urls_with_indices)}: {e}")
+                    logger.error("Stopping download process due to error")
 
-        logger.success(f"All {len(urls_with_indices)} videos downloaded successfully!")
+                    # Send error notification
+                    self.notifier.send_error_notification(str(e), playlist_name)
+                    raise
+
+            logger.success(f"All {len(urls_with_indices)} videos downloaded successfully!")
+
+            # Send success notification
+            self.notifier.send_success_notification(len(urls_with_indices), playlist_name)
+
+        except Exception:
+            # Re-raise the exception after notification has been sent
+            raise

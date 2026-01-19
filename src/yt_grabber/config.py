@@ -14,3 +14,6 @@ class Settings(BaseSettings):
     index_videos: bool = True
     retry_attempts: int = 1
     retry_delay: int = 300
+    telegram_notifications_enabled: bool = False
+    telegram_bot_token: str = ""
+    telegram_chat_id: str = ""

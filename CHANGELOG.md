@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2026-01-18
+
+### Added
+- Telegram notifications for download completion and failures
+- New configuration options:
+  - `TELEGRAM_NOTIFICATIONS_ENABLED` - Enable/disable Telegram notifications
+  - `TELEGRAM_BOT_TOKEN` - Bot token from @BotFather
+  - `TELEGRAM_CHAT_ID` - Chat ID to send messages to
+- Automatic notification when all videos downloaded successfully
+- Automatic notification when download fails with error details
+
+### Dependencies
+- Added `python-telegram-bot>=21.0` for Telegram integration
+
 ## [0.1.3] - 2026-01-18
 
 ### Added

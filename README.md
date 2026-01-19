@@ -125,6 +125,9 @@ Available settings:
 | `INDEX_VIDEOS` | Add numeric prefix to filenames | `false` |
 | `RETRY_ATTEMPTS` | Number of retry attempts per video | `1` |
 | `RETRY_DELAY` | Delay before retry (seconds) | `300` |
+| `TELEGRAM_NOTIFICATIONS_ENABLED` | Enable Telegram notifications | `false` |
+| `TELEGRAM_BOT_TOKEN` | Telegram bot token from @BotFather | - |
+| `TELEGRAM_CHAT_ID` | Your Telegram chat ID | - |
 
 ## Playlist File Format
 
@@ -242,6 +245,50 @@ The program stops immediately if:
 - Any unexpected error occurs
 
 This ensures data integrity and prevents partial operations.
+
+## Telegram Notifications
+
+Get notified when downloads complete or fail.
+
+### Setup
+
+1. **Create a Telegram Bot:**
+   - Message [@BotFather](https://t.me/BotFather) on Telegram
+   - Send `/newbot` and follow instructions
+   - Save the bot token (looks like `1234567890:ABCdefGHIjklMNOpqrsTUVwxyz`)
+
+2. **Get Your Chat ID:**
+   - Message [@userinfobot](https://t.me/userinfobot) or [@getmyid_bot](https://t.me/getmyid_bot)
+   - It will reply with your chat ID (a number like `123456789`)
+
+3. **Start a Chat with Your Bot:**
+   - Find your bot in Telegram search
+   - Press "Start" button
+
+4. **Configure:**
+   ```bash
+   TELEGRAM_NOTIFICATIONS_ENABLED=true
+   TELEGRAM_BOT_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
+   TELEGRAM_CHAT_ID=123456789
+   ```
+
+### Notification Examples
+
+**Success:**
+```
+✅ Download Complete
+
+Playlist: my_music
+Videos downloaded: 15
+```
+
+**Error:**
+```
+❌ Download Failed
+
+Playlist: my_music
+Error: HTTP Error 403: Forbidden
+```
 
 ## Tips
 
