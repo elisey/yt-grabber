@@ -234,7 +234,7 @@ def sync(
             raise typer.Exit(1)
 
         # Sync the playlist
-        result = sync_playlist(str(playlist_path))
+        result = sync_playlist(playlist_path)
 
         # Format and print diff
         format_sync_diff(result)

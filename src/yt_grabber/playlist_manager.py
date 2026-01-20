@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from loguru import logger
+
 from yt_grabber.models import Playlist, Video
 from yt_grabber.playlist_header import PlaylistFileHeader
 
@@ -10,31 +12,19 @@ REMOVED_MARKER = "D"
 HEADER_MARKER = ":"
 
 
-def parse_playlist(file_path: str) -> Playlist:
+def load_playlist(file_path: Path) -> Playlist:
     """Parse a playlist file into a Playlist object."""
-    path = Path(file_path)
-
-    if not path.exists():
+    if not file_path.exists():
         raise FileNotFoundError(f"Playlist file not found: {file_path}")
 
     # Read header
-    header_dict = PlaylistFileHeader.read_header(path)
-
-    # Convert dict to HeaderMetadata if present
-    header = None
-    if header_dict:
-        from yt_grabber.playlist_header import HeaderMetadata
-        header = HeaderMetadata(
-            source_url=header_dict.get("Source URL", ""),
-            extraction_timestamp=header_dict.get("Extraction Timestamp", ""),
-            total_videos=int(header_dict.get("Total Videos", 0)),
-            source_type=header_dict.get("Source Type", ""),
-            title=header_dict.get("Title", ""),
-            extractor_version=header_dict.get("Extractor Version", "")
-        )
+    header = PlaylistFileHeader.read_header(file_path)
 
     # Parse videos
     videos = []
+
+    seen_videos = set()
+
     with open(file_path) as f:
         for line in f:
             line = line.strip()
@@ -72,6 +62,10 @@ def parse_playlist(file_path: str) -> Playlist:
                     # First non-marker part is the URL
                     url = " ".join(parts[marker_count:])
                     break
+            if url in seen_videos:
+                logger.warning(f"Duplicate video URL found and skipped: {url}")
+                continue
+            seen_videos.add(url)
 
             videos.append(Video(
                 url=url,
@@ -83,7 +77,7 @@ def parse_playlist(file_path: str) -> Playlist:
     return Playlist(header=header, videos=videos)
 
 
-def build_playlist(playlist: Playlist, file_path: str) -> None:
+def save_playlist(playlist: Playlist, file_path: Path) -> None:
     """Build and write a playlist file from a Playlist object."""
     lines = []
 

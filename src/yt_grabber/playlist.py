@@ -5,7 +5,7 @@ from typing import List, Tuple
 
 from loguru import logger
 
-from yt_grabber.playlist_manager import build_playlist, parse_playlist
+from yt_grabber.playlist_manager import save_playlist, load_playlist
 
 
 class PlaylistManager:
@@ -31,7 +31,7 @@ class PlaylistManager:
         if not self.playlist_path.exists():
             raise FileNotFoundError(f"Playlist file not found: {self.playlist_path}")
 
-        playlist = parse_playlist(str(self.playlist_path))
+        playlist = load_playlist(self.playlist_path)
 
         # Return URLs with their original indices (1-based)
         urls_with_indices = [
@@ -52,7 +52,7 @@ class PlaylistManager:
         Raises:
             ValueError: If URL is not found in the playlist file
         """
-        playlist = parse_playlist(str(self.playlist_path))
+        playlist = load_playlist(self.playlist_path)
 
         # Find and mark the video as downloaded
         url_found = False
@@ -69,6 +69,6 @@ class PlaylistManager:
             raise ValueError(f"URL not found in playlist: {url}")
 
         # Save updated playlist
-        build_playlist(playlist, str(self.playlist_path))
+        save_playlist(playlist, self.playlist_path)
 
         logger.success(f"Updated playlist file: {self.playlist_path}")

@@ -79,7 +79,7 @@ class TestSyncPlaylist:
         playlist_file.write_text("https://www.youtube.com/watch?v=video1\n")
 
         with pytest.raises(ValueError, match="Playlist has no header"):
-            sync_playlist(str(playlist_file))
+            sync_playlist(playlist_file)
 
     @patch("yt_grabber.sync._fetch_current_videos")
     def test_sync_playlist_no_changes(self, mock_fetch, tmp_path: Path):
@@ -108,7 +108,7 @@ https://www.youtube.com/watch?v=video2
         )
 
         # Sync
-        result = sync_playlist(str(playlist_file))
+        result = sync_playlist(playlist_file)
 
         # Verify no additions or removals
         assert len(result.added_urls) == 0
@@ -145,7 +145,7 @@ https://www.youtube.com/watch?v=video2
         )
 
         # Sync
-        result = sync_playlist(str(playlist_file))
+        result = sync_playlist(playlist_file)
 
         # Verify additions
         assert len(result.added_urls) == 1
@@ -190,7 +190,7 @@ https://www.youtube.com/watch?v=video3
         )
 
         # Sync
-        result = sync_playlist(str(playlist_file))
+        result = sync_playlist(playlist_file)
 
         # Verify removals
         assert len(result.added_urls) == 0
@@ -234,7 +234,7 @@ https://www.youtube.com/watch?v=video2
         )
 
         # Sync
-        result = sync_playlist(str(playlist_file))
+        result = sync_playlist(playlist_file)
 
         # Verify title change
         assert any(
@@ -273,7 +273,7 @@ https://www.youtube.com/watch?v=video2
         )
 
         # Sync
-        sync_playlist(str(playlist_file))
+        sync_playlist(playlist_file)
 
         # Verify downloaded marker is preserved
         content = playlist_file.read_text()
@@ -305,7 +305,7 @@ A https://www.youtube.com/watch?v=video2
         )
 
         # Sync
-        sync_playlist(str(playlist_file))
+        sync_playlist(playlist_file)
 
         # Verify A marker is cleared and replaced with D
         content = playlist_file.read_text()
@@ -341,7 +341,7 @@ https://www.youtube.com/watch?v=video3
         )
 
         # Sync
-        result = sync_playlist(str(playlist_file))
+        result = sync_playlist(playlist_file)
 
         # Verify changes
         assert len(result.added_urls) == 1

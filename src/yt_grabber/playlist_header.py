@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 
 @dataclass
@@ -85,14 +85,14 @@ class PlaylistFileHeader:
         return (key, value)
 
     @staticmethod
-    def read_header(file_path: Path) -> Optional[Dict[str, str]]:
+    def read_header(file_path: Path) -> Optional[HeaderMetadata]:
         """Read and parse header from playlist file.
 
         Args:
             file_path: Path to playlist file
 
         Returns:
-            Dictionary of header metadata or None if no header found
+            HeaderMetadata object or None if no header found
         """
         if not file_path.exists():
             return None
@@ -113,4 +113,14 @@ class PlaylistFileHeader:
                     key, value = parsed
                     header_data[key] = value
 
-        return header_data if header_data else None
+        if not header_data:
+            return None
+
+        return HeaderMetadata(
+            source_url=header_data.get("Source URL", ""),
+            extraction_timestamp=header_data.get("Extraction Timestamp", ""),
+            total_videos=int(header_data.get("Total Videos", 0)),
+            source_type=header_data.get("Source Type", ""),
+            title=header_data.get("Title", ""),
+            extractor_version=header_data.get("Extractor Version", "")
+        )

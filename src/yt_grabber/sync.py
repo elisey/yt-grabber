@@ -1,6 +1,7 @@
 """Sync playlist with its source."""
 
 from datetime import datetime
+from pathlib import Path
 from typing import List
 
 from loguru import logger
@@ -10,7 +11,7 @@ from yt_grabber.extractors.channel import ChannelExtractor
 from yt_grabber.extractors.playlist import PlaylistExtractor
 from yt_grabber.models import HeaderChange, Playlist, SyncResult, Video
 from yt_grabber.playlist_header import HeaderMetadata
-from yt_grabber.playlist_manager import build_playlist, parse_playlist
+from yt_grabber.playlist_manager import save_playlist, load_playlist
 
 
 def _fetch_current_videos(source_url: str, source_type: str) -> tuple[List[str], str]:
@@ -42,7 +43,7 @@ def _fetch_current_videos(source_url: str, source_type: str) -> tuple[List[str],
     return urls, title
 
 
-def sync_playlist(file_path: str) -> SyncResult:
+def sync_playlist(file_path: Path) -> SyncResult:
     """Sync a playlist with its source.
 
     Args:
@@ -57,7 +58,7 @@ def sync_playlist(file_path: str) -> SyncResult:
     logger.info(f"Syncing playlist: {file_path}")
 
     # Parse existing playlist
-    playlist = parse_playlist(file_path)
+    playlist = load_playlist(file_path)
 
     if not playlist.header:
         raise ValueError("Playlist has no header - cannot determine source URL")
@@ -113,7 +114,7 @@ def sync_playlist(file_path: str) -> SyncResult:
     playlist.header = new_header
 
     # Build and save updated playlist
-    build_playlist(playlist, file_path)
+    save_playlist(playlist, file_path)
 
     # Build result
     result = SyncResult(
