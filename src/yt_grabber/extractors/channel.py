@@ -1,7 +1,5 @@
 """Channel extractor for YouTube channels."""
 
-from typing import List
-
 from yt_grabber.extractors.base import BaseExtractor
 
 
@@ -35,7 +33,7 @@ class ChannelExtractor(BaseExtractor):
         # If it's a channel ID (starts with UC typically)
         return f"https://www.youtube.com/channel/{url_input}/videos"
 
-    def transform_urls(self, urls: List[str]) -> List[str]:
+    def transform_urls(self, urls: list[str]) -> list[str]:
         """Reverse URL list to get oldest videos first.
 
         Args:

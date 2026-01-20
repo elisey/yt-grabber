@@ -1,7 +1,12 @@
 from dataclasses import dataclass, field
-from typing import Optional
 
 from yt_grabber.playlist_header import HeaderMetadata
+
+
+class DownloadError(Exception):
+    """Exception raised when video or playlist download fails."""
+
+    pass
 
 
 @dataclass
@@ -18,7 +23,7 @@ class Video:
 class Playlist:
     """Represents a complete playlist with header and videos."""
 
-    header: Optional[HeaderMetadata]
+    header: HeaderMetadata | None
     videos: list[Video]
 
 

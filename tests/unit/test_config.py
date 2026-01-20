@@ -1,6 +1,5 @@
 """Unit tests for config module."""
 
-import os
 from pathlib import Path
 
 import pytest
@@ -16,6 +15,19 @@ class TestSettings:
         """Test default settings values."""
         # Change to tmp directory to avoid loading project .env
         monkeypatch.chdir(tmp_path)
+        # Clear all environment variables that might affect settings
+        for var in [
+            "VIDEO_QUALITY",
+            "MIN_DELAY",
+            "MAX_DELAY",
+            "INDEX_VIDEOS",
+            "RETRY_ATTEMPTS",
+            "RETRY_DELAY",
+            "TELEGRAM_NOTIFICATIONS_ENABLED",
+            "TELEGRAM_BOT_TOKEN",
+            "TELEGRAM_CHAT_ID",
+        ]:
+            monkeypatch.delenv(var, raising=False)
 
         settings = Settings()
 
@@ -115,9 +127,17 @@ class TestSettings:
     def test_settings_from_env_file(self, tmp_path: Path, monkeypatch):
         """Test loading settings from .env file."""
         # Clear any environment variables first
-        for key in ['VIDEO_QUALITY', 'MIN_DELAY', 'MAX_DELAY', 'INDEX_VIDEOS',
-                    'RETRY_ATTEMPTS', 'RETRY_DELAY', 'TELEGRAM_NOTIFICATIONS_ENABLED',
-                    'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID']:
+        for key in [
+            "VIDEO_QUALITY",
+            "MIN_DELAY",
+            "MAX_DELAY",
+            "INDEX_VIDEOS",
+            "RETRY_ATTEMPTS",
+            "RETRY_DELAY",
+            "TELEGRAM_NOTIFICATIONS_ENABLED",
+            "TELEGRAM_BOT_TOKEN",
+            "TELEGRAM_CHAT_ID",
+        ]:
             monkeypatch.delenv(key, raising=False)
 
         # Create .env file

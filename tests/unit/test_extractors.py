@@ -109,11 +109,7 @@ class TestPlaylistExtractor:
         mock_ydl = MagicMock()
         mock_ydl.__enter__ = MagicMock(return_value=mock_ydl)
         mock_ydl.__exit__ = MagicMock(return_value=None)
-        mock_ydl.extract_info.return_value = {
-            "id": "test",
-            "title": "Test",
-            "entries": []
-        }
+        mock_ydl.extract_info.return_value = {"id": "test", "title": "Test", "entries": []}
         mock_ydl_class.return_value = mock_ydl
 
         # Extract URLs should raise

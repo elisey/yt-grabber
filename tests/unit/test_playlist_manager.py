@@ -1,13 +1,12 @@
 """Unit tests for playlist_manager module."""
 
-from pathlib import Path
 from io import StringIO
 
 import pytest
 from loguru import logger
 
-from yt_grabber.playlist_manager import load_playlist, save_playlist
 from yt_grabber.models import Playlist, Video
+from yt_grabber.playlist_manager import load_playlist, save_playlist
 
 
 class TestDeduplication:
@@ -128,10 +127,25 @@ class TestSavePlaylist:
         playlist = Playlist(
             header=None,
             videos=[
-                Video(url="https://youtube.com/watch?v=abc123", downloaded=False, added=False, removed=False),
-                Video(url="https://youtube.com/watch?v=def456", downloaded=False, added=False, removed=False),
-                Video(url="https://youtube.com/watch?v=ghi789", downloaded=False, added=False, removed=False),
-            ]
+                Video(
+                    url="https://youtube.com/watch?v=abc123",
+                    downloaded=False,
+                    added=False,
+                    removed=False,
+                ),
+                Video(
+                    url="https://youtube.com/watch?v=def456",
+                    downloaded=False,
+                    added=False,
+                    removed=False,
+                ),
+                Video(
+                    url="https://youtube.com/watch?v=ghi789",
+                    downloaded=False,
+                    added=False,
+                    removed=False,
+                ),
+            ],
         )
 
         save_playlist(playlist, playlist_file)
@@ -151,10 +165,25 @@ https://youtube.com/watch?v=ghi789
         playlist = Playlist(
             header=None,
             videos=[
-                Video(url="https://youtube.com/watch?v=abc123", downloaded=True, added=False, removed=False),
-                Video(url="https://youtube.com/watch?v=def456", downloaded=False, added=False, removed=False),
-                Video(url="https://youtube.com/watch?v=ghi789", downloaded=True, added=False, removed=False),
-            ]
+                Video(
+                    url="https://youtube.com/watch?v=abc123",
+                    downloaded=True,
+                    added=False,
+                    removed=False,
+                ),
+                Video(
+                    url="https://youtube.com/watch?v=def456",
+                    downloaded=False,
+                    added=False,
+                    removed=False,
+                ),
+                Video(
+                    url="https://youtube.com/watch?v=ghi789",
+                    downloaded=True,
+                    added=False,
+                    removed=False,
+                ),
+            ],
         )
 
         save_playlist(playlist, playlist_file)
@@ -173,9 +202,19 @@ https://youtube.com/watch?v=def456
         playlist = Playlist(
             header=None,
             videos=[
-                Video(url="https://youtube.com/watch?v=abc123", downloaded=False, added=True, removed=False),
-                Video(url="https://youtube.com/watch?v=def456", downloaded=False, added=False, removed=False),
-            ]
+                Video(
+                    url="https://youtube.com/watch?v=abc123",
+                    downloaded=False,
+                    added=True,
+                    removed=False,
+                ),
+                Video(
+                    url="https://youtube.com/watch?v=def456",
+                    downloaded=False,
+                    added=False,
+                    removed=False,
+                ),
+            ],
         )
 
         save_playlist(playlist, playlist_file)
@@ -193,9 +232,19 @@ https://youtube.com/watch?v=def456
         playlist = Playlist(
             header=None,
             videos=[
-                Video(url="https://youtube.com/watch?v=abc123", downloaded=False, added=False, removed=True),
-                Video(url="https://youtube.com/watch?v=def456", downloaded=False, added=False, removed=False),
-            ]
+                Video(
+                    url="https://youtube.com/watch?v=abc123",
+                    downloaded=False,
+                    added=False,
+                    removed=True,
+                ),
+                Video(
+                    url="https://youtube.com/watch?v=def456",
+                    downloaded=False,
+                    added=False,
+                    removed=False,
+                ),
+            ],
         )
 
         save_playlist(playlist, playlist_file)
@@ -213,9 +262,19 @@ https://youtube.com/watch?v=def456
         playlist = Playlist(
             header=None,
             videos=[
-                Video(url="https://youtube.com/watch?v=abc123", downloaded=True, added=True, removed=False),
-                Video(url="https://youtube.com/watch?v=def456", downloaded=True, added=False, removed=True),
-            ]
+                Video(
+                    url="https://youtube.com/watch?v=abc123",
+                    downloaded=True,
+                    added=True,
+                    removed=False,
+                ),
+                Video(
+                    url="https://youtube.com/watch?v=def456",
+                    downloaded=True,
+                    added=False,
+                    removed=True,
+                ),
+            ],
         )
 
         save_playlist(playlist, playlist_file)
@@ -238,15 +297,25 @@ D # https://youtube.com/watch?v=def456
             total_videos=2,
             source_type="playlist",
             title="Test Playlist",
-            extractor_version="1.0.0"
+            extractor_version="1.0.0",
         )
 
         playlist = Playlist(
             header=header,
             videos=[
-                Video(url="https://youtube.com/watch?v=abc123", downloaded=False, added=False, removed=False),
-                Video(url="https://youtube.com/watch?v=def456", downloaded=False, added=False, removed=False),
-            ]
+                Video(
+                    url="https://youtube.com/watch?v=abc123",
+                    downloaded=False,
+                    added=False,
+                    removed=False,
+                ),
+                Video(
+                    url="https://youtube.com/watch?v=def456",
+                    downloaded=False,
+                    added=False,
+                    removed=False,
+                ),
+            ],
         )
 
         save_playlist(playlist, playlist_file)
@@ -290,16 +359,31 @@ D # https://youtube.com/watch?v=def456
             total_videos=3,
             source_type="playlist",
             title="Test Playlist",
-            extractor_version="1.0.0"
+            extractor_version="1.0.0",
         )
 
         original_playlist = Playlist(
             header=header,
             videos=[
-                Video(url="https://youtube.com/watch?v=abc123", downloaded=True, added=False, removed=False),
-                Video(url="https://youtube.com/watch?v=def456", downloaded=False, added=True, removed=False),
-                Video(url="https://youtube.com/watch?v=ghi789", downloaded=False, added=False, removed=True),
-            ]
+                Video(
+                    url="https://youtube.com/watch?v=abc123",
+                    downloaded=True,
+                    added=False,
+                    removed=False,
+                ),
+                Video(
+                    url="https://youtube.com/watch?v=def456",
+                    downloaded=False,
+                    added=True,
+                    removed=False,
+                ),
+                Video(
+                    url="https://youtube.com/watch?v=ghi789",
+                    downloaded=False,
+                    added=False,
+                    removed=True,
+                ),
+            ],
         )
 
         # Save the playlist

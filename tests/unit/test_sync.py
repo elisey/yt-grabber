@@ -19,15 +19,14 @@ class TestFetchCurrentVideos:
         mock_extractor = MagicMock()
         mock_extractor._extract_video_ids.return_value = (
             ["video1", "video2", "video3"],
-            "Test Playlist"
+            "Test Playlist",
         )
         mock_extractor.transform_urls.side_effect = lambda urls: urls
         mock_extractor_class.return_value = mock_extractor
 
         # Fetch videos
         urls, title = _fetch_current_videos(
-            "https://www.youtube.com/playlist?list=PLtest",
-            "playlist"
+            "https://www.youtube.com/playlist?list=PLtest", "playlist"
         )
 
         # Verify
@@ -42,18 +41,14 @@ class TestFetchCurrentVideos:
         """Test fetching videos from a channel."""
         # Setup mock
         mock_extractor = MagicMock()
-        mock_extractor._extract_video_ids.return_value = (
-            ["video1", "video2"],
-            "Test Channel"
-        )
+        mock_extractor._extract_video_ids.return_value = (["video1", "video2"], "Test Channel")
         # Channel extractor reverses URLs
         mock_extractor.transform_urls.side_effect = lambda urls: list(reversed(urls))
         mock_extractor_class.return_value = mock_extractor
 
         # Fetch videos
         urls, title = _fetch_current_videos(
-            "https://www.youtube.com/@TestChannel/videos",
-            "channel"
+            "https://www.youtube.com/@TestChannel/videos", "channel"
         )
 
         # Verify - should be reversed
@@ -104,7 +99,7 @@ https://www.youtube.com/watch?v=video2
                 "https://www.youtube.com/watch?v=video1",
                 "https://www.youtube.com/watch?v=video2",
             ],
-            "Test Playlist"
+            "Test Playlist",
         )
 
         # Sync
@@ -141,7 +136,7 @@ https://www.youtube.com/watch?v=video2
                 "https://www.youtube.com/watch?v=video2",
                 "https://www.youtube.com/watch?v=video3",
             ],
-            "Test Playlist"
+            "Test Playlist",
         )
 
         # Sync
@@ -153,10 +148,7 @@ https://www.youtube.com/watch?v=video2
         assert len(result.removed_urls) == 0
 
         # Verify total videos changed
-        assert any(
-            c.field == "total_videos" and c.new_value == "3"
-            for c in result.header_changes
-        )
+        assert any(c.field == "total_videos" and c.new_value == "3" for c in result.header_changes)
 
         # Verify file has A marker for new video
         content = playlist_file.read_text()
@@ -186,7 +178,7 @@ https://www.youtube.com/watch?v=video3
                 "https://www.youtube.com/watch?v=video1",
                 "https://www.youtube.com/watch?v=video3",
             ],
-            "Test Playlist"
+            "Test Playlist",
         )
 
         # Sync
@@ -198,10 +190,7 @@ https://www.youtube.com/watch?v=video3
         assert "https://www.youtube.com/watch?v=video2" in result.removed_urls
 
         # Verify total videos changed
-        assert any(
-            c.field == "total_videos" and c.new_value == "2"
-            for c in result.header_changes
-        )
+        assert any(c.field == "total_videos" and c.new_value == "2" for c in result.header_changes)
 
         # Verify file has D marker for removed video
         content = playlist_file.read_text()
@@ -230,7 +219,7 @@ https://www.youtube.com/watch?v=video2
                 "https://www.youtube.com/watch?v=video1",
                 "https://www.youtube.com/watch?v=video2",
             ],
-            "New Title"
+            "New Title",
         )
 
         # Sync
@@ -269,7 +258,7 @@ https://www.youtube.com/watch?v=video2
                 "https://www.youtube.com/watch?v=video1",
                 "https://www.youtube.com/watch?v=video2",
             ],
-            "Test Playlist"
+            "Test Playlist",
         )
 
         # Sync
@@ -301,7 +290,7 @@ A https://www.youtube.com/watch?v=video2
             [
                 "https://www.youtube.com/watch?v=video1",
             ],
-            "Test Playlist"
+            "Test Playlist",
         )
 
         # Sync
@@ -337,7 +326,7 @@ https://www.youtube.com/watch?v=video3
                 "https://www.youtube.com/watch?v=video3",
                 "https://www.youtube.com/watch?v=video4",
             ],
-            "New Title"
+            "New Title",
         )
 
         # Sync

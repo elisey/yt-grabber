@@ -2,19 +2,18 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import List
 
 from loguru import logger
 
 from yt_grabber import __version__
 from yt_grabber.extractors.channel import ChannelExtractor
 from yt_grabber.extractors.playlist import PlaylistExtractor
-from yt_grabber.models import HeaderChange, Playlist, SyncResult, Video
+from yt_grabber.models import HeaderChange, SyncResult, Video
 from yt_grabber.playlist_header import HeaderMetadata
-from yt_grabber.playlist_manager import save_playlist, load_playlist
+from yt_grabber.playlist_manager import load_playlist, save_playlist
 
 
-def _fetch_current_videos(source_url: str, source_type: str) -> tuple[List[str], str]:
+def _fetch_current_videos(source_url: str, source_type: str) -> tuple[list[str], str]:
     """Fetch current videos from the source.
 
     Args:
@@ -24,6 +23,7 @@ def _fetch_current_videos(source_url: str, source_type: str) -> tuple[List[str],
     Returns:
         Tuple of (list of video URLs, title)
     """
+    extractor: PlaylistExtractor | ChannelExtractor
     if source_type == "playlist":
         extractor = PlaylistExtractor()
     elif source_type == "channel":
@@ -67,10 +67,7 @@ def sync_playlist(file_path: Path) -> SyncResult:
 
     # Fetch current videos from source
     logger.info(f"Fetching videos from source: {old_header.source_url}")
-    current_urls, new_title = _fetch_current_videos(
-        old_header.source_url,
-        old_header.source_type
-    )
+    current_urls, new_title = _fetch_current_videos(old_header.source_url, old_header.source_type)
 
     # Build sets for comparison
     current_url_set = set(current_urls)
@@ -95,12 +92,7 @@ def sync_playlist(file_path: Path) -> SyncResult:
         if url in added_urls:
             # Check if we should mark as added
             # Only mark as added if it wasn't already in the list
-            playlist.videos.append(Video(
-                url=url,
-                downloaded=False,
-                added=True,
-                removed=False
-            ))
+            playlist.videos.append(Video(url=url, downloaded=False, added=True, removed=False))
 
     # Update header metadata
     new_header = HeaderMetadata(
@@ -109,7 +101,7 @@ def sync_playlist(file_path: Path) -> SyncResult:
         total_videos=len(current_urls),  # Count of videos currently in source
         source_type=old_header.source_type,
         title=new_title,
-        extractor_version=__version__
+        extractor_version=__version__,
     )
     playlist.header = new_header
 
@@ -118,32 +110,32 @@ def sync_playlist(file_path: Path) -> SyncResult:
 
     # Build result
     result = SyncResult(
-        added_urls=list(added_urls),
-        removed_urls=list(removed_urls),
-        header_changes=[]
+        added_urls=list(added_urls), removed_urls=list(removed_urls), header_changes=[]
     )
 
     # Track header changes
     if old_header.title != new_title:
-        result.header_changes.append(HeaderChange(
-            field="title",
-            old_value=old_header.title,
-            new_value=new_title
-        ))
+        result.header_changes.append(
+            HeaderChange(field="title", old_value=old_header.title, new_value=new_title)
+        )
 
     if old_header.total_videos != new_header.total_videos:
-        result.header_changes.append(HeaderChange(
-            field="total_videos",
-            old_value=str(old_header.total_videos),
-            new_value=str(new_header.total_videos)
-        ))
+        result.header_changes.append(
+            HeaderChange(
+                field="total_videos",
+                old_value=str(old_header.total_videos),
+                new_value=str(new_header.total_videos),
+            )
+        )
 
     # Always changed
-    result.header_changes.append(HeaderChange(
-        field="extraction_timestamp",
-        old_value=old_header.extraction_timestamp,
-        new_value=new_header.extraction_timestamp
-    ))
+    result.header_changes.append(
+        HeaderChange(
+            field="extraction_timestamp",
+            old_value=old_header.extraction_timestamp,
+            new_value=new_header.extraction_timestamp,
+        )
+    )
 
     logger.success("Sync completed")
 

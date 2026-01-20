@@ -31,7 +31,8 @@ class TestPlaylistManager:
         manager = PlaylistManager(playlist_file_with_header)
         urls_with_indices = manager.read_urls()
 
-        # Should have 2 URLs (video1 not downloaded, video2 is downloaded, video3 added but not downloaded)
+        # Should have 2 URLs (video1 not downloaded, video2 is downloaded,
+        # video3 added but not downloaded)
         assert len(urls_with_indices) == 2
         assert urls_with_indices[0] == ("https://example.com/video1", 1)
         assert urls_with_indices[1] == ("https://example.com/video3", 3)

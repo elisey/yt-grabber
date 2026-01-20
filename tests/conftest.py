@@ -1,7 +1,6 @@
 """Shared fixtures for tests."""
 
 from pathlib import Path
-from typing import List
 
 import pytest
 
@@ -39,7 +38,7 @@ def sample_header() -> HeaderMetadata:
 
 
 @pytest.fixture
-def sample_videos() -> List[Video]:
+def sample_videos() -> list[Video]:
     """Create sample videos list."""
     return [
         Video(url="https://example.com/video1", downloaded=False),
@@ -49,7 +48,7 @@ def sample_videos() -> List[Video]:
 
 
 @pytest.fixture
-def sample_playlist(sample_header: HeaderMetadata, sample_videos: List[Video]) -> Playlist:
+def sample_playlist(sample_header: HeaderMetadata, sample_videos: list[Video]) -> Playlist:
     """Create sample playlist."""
     return Playlist(header=sample_header, videos=sample_videos)
 

@@ -113,7 +113,9 @@ class TestBatchDownloader:
 
     @patch("yt_grabber.batch.VideoDownloader")
     @patch("yt_grabber.batch.PlaylistManager")
-    def test_download_all_playlists_success(self, mock_pm_class, mock_vd_class, mock_settings, tmp_path: Path):
+    def test_download_all_playlists_success(
+        self, mock_pm_class, mock_vd_class, mock_settings, tmp_path: Path
+    ):
         """Test successfully downloading all playlists."""
         # Create playlist files
         (tmp_path / "playlist1.txt").write_text("https://example.com/video1\n")
@@ -235,8 +237,10 @@ class TestBatchDownloader:
 
         batch = BatchDownloader(mock_settings)
 
-        with patch.object(batch.notifier, "send_playlist_started_notification") as mock_started, \
-             patch.object(batch.notifier, "send_batch_success_notification") as mock_success:
+        with (
+            patch.object(batch.notifier, "send_playlist_started_notification") as mock_started,
+            patch.object(batch.notifier, "send_batch_success_notification") as mock_success,
+        ):
             batch.download_all_playlists(tmp_path)
 
             # Verify notifications
@@ -262,8 +266,10 @@ class TestBatchDownloader:
 
         batch = BatchDownloader(mock_settings)
 
+        from yt_grabber.models import DownloadError
+
         with patch.object(batch.notifier, "send_batch_error_notification") as mock_error:
-            with pytest.raises(Exception):
+            with pytest.raises(DownloadError):
                 batch.download_all_playlists(tmp_path)
 
             # Verify error notification sent

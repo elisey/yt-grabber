@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
+from typing import TextIO
 
 
 @dataclass
@@ -23,7 +23,7 @@ class PlaylistFileHeader:
     HEADER_MARKER = ":"
 
     @staticmethod
-    def format_header_lines(metadata: HeaderMetadata) -> List[str]:
+    def format_header_lines(metadata: HeaderMetadata) -> list[str]:
         """Format header metadata as list of lines.
 
         Args:
@@ -44,7 +44,7 @@ class PlaylistFileHeader:
         return lines
 
     @staticmethod
-    def write_header(f, metadata: HeaderMetadata) -> None:
+    def write_header(f: TextIO, metadata: HeaderMetadata) -> None:
         """Write header to file object.
 
         Args:
@@ -56,7 +56,7 @@ class PlaylistFileHeader:
             f.write(f"{line}\n")
 
     @staticmethod
-    def parse_header_line(line: str) -> Optional[tuple[str, str]]:
+    def parse_header_line(line: str) -> tuple[str, str] | None:
         """Parse a single header line into key-value pair.
 
         Args:
@@ -85,7 +85,7 @@ class PlaylistFileHeader:
         return (key, value)
 
     @staticmethod
-    def read_header(file_path: Path) -> Optional[HeaderMetadata]:
+    def read_header(file_path: Path) -> HeaderMetadata | None:
         """Read and parse header from playlist file.
 
         Args:
@@ -99,7 +99,7 @@ class PlaylistFileHeader:
 
         header_data = {}
 
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             for line in f:
                 line = line.strip()
 
@@ -122,5 +122,5 @@ class PlaylistFileHeader:
             total_videos=int(header_data.get("Total Videos", 0)),
             source_type=header_data.get("Source Type", ""),
             title=header_data.get("Title", ""),
-            extractor_version=header_data.get("Extractor Version", "")
+            extractor_version=header_data.get("Extractor Version", ""),
         )

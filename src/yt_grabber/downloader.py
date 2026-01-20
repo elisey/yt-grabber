@@ -10,6 +10,7 @@ import yt_dlp
 from loguru import logger
 
 from yt_grabber.config import Settings
+from yt_grabber.models import DownloadError
 from yt_grabber.notifier import TelegramNotifier
 from yt_grabber.playlist import PlaylistManager
 
@@ -42,7 +43,7 @@ class VideoDownloader:
         self.notifier = TelegramNotifier(
             bot_token=settings.telegram_bot_token,
             chat_id=settings.telegram_chat_id,
-            enabled=settings.telegram_notifications_enabled
+            enabled=settings.telegram_notifications_enabled,
         )
 
         logger.info(f"Download directory: {self.download_dir}")
@@ -67,7 +68,7 @@ class VideoDownloader:
             writer = csv.writer(f)
             writer.writerow([url, filename, timestamp])
 
-    def _get_ydl_opts(self) -> dict:
+    def _get_ydl_opts(self) -> dict[str, object]:
         """Get yt-dlp options based on settings.
 
         Returns:
@@ -103,7 +104,9 @@ class VideoDownloader:
         for attempt in range(1, max_attempts + 1):
             try:
                 if attempt > 1:
-                    logger.warning(f"Retry attempt {attempt - 1}/{self.settings.retry_attempts} for: {url}")
+                    logger.warning(
+                        f"Retry attempt {attempt - 1}/{self.settings.retry_attempts} for: {url}"
+                    )
                 else:
                     logger.info(f"Starting download: {url}")
 
@@ -137,7 +140,7 @@ class VideoDownloader:
 
                     # Log statistics
                     logger.success(f"Downloaded: {video_title}")
-                    logger.info(f"Statistics:")
+                    logger.info("Statistics:")
                     logger.info(f"  Video ID: {video_id}")
                     logger.info(f"  File: {filename_only}")
                     logger.info(f"  Download time: {download_time:.2f}s")
@@ -166,7 +169,9 @@ class VideoDownloader:
         logger.info(f"Waiting {delay:.2f} seconds before next download...")
         time.sleep(delay)
 
-    def download_playlist(self, playlist_manager: PlaylistManager, delay_after_last: bool = False) -> None:
+    def download_playlist(
+        self, playlist_manager: PlaylistManager, delay_after_last: bool = False
+    ) -> None:
         """Download all videos from a playlist file.
 
         Args:
@@ -187,7 +192,10 @@ class VideoDownloader:
 
         try:
             for progress_idx, (url, playlist_index) in enumerate(urls_with_indices, start=1):
-                logger.info(f"Progress: {progress_idx}/{len(urls_with_indices)} (playlist position: {playlist_index})")
+                logger.info(
+                    f"Progress: {progress_idx}/{len(urls_with_indices)} "
+                    f"(playlist position: {playlist_index})"
+                )
 
                 try:
                     # Download the video using its position in full playlist
@@ -197,7 +205,7 @@ class VideoDownloader:
                     playlist_manager.mark_as_downloaded(url)
 
                     # Add delay after download
-                    is_last_video = (progress_idx == len(urls_with_indices))
+                    is_last_video = progress_idx == len(urls_with_indices)
 
                     if not is_last_video:
                         # Always delay between videos in same playlist
@@ -207,12 +215,14 @@ class VideoDownloader:
                         self._random_delay()
 
                 except Exception as e:
-                    logger.error(f"Error downloading video {progress_idx}/{len(urls_with_indices)}: {e}")
+                    logger.error(
+                        f"Error downloading video {progress_idx}/{len(urls_with_indices)}: {e}"
+                    )
                     logger.error("Stopping download process due to error")
 
                     # Send error notification
                     self.notifier.send_error_notification(str(e), playlist_name)
-                    raise
+                    raise DownloadError(f"Failed to download video: {e}") from e
 
             logger.success(f"All {len(urls_with_indices)} videos downloaded successfully!")
 

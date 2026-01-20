@@ -22,7 +22,10 @@ def setup_logging() -> None:
     logger.remove()  # Remove default handler
     logger.add(
         sys.stderr,
-        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <level>{message}</level>",
+        format=(
+            "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "
+            "<level>{level: <8}</level> | <level>{message}</level>"
+        ),
         colorize=True,
         level="INFO",
     )
@@ -48,7 +51,7 @@ def extract_playlist(
         extractor.extract_urls(playlist_url, output_path)
     except Exception as e:
         logger.error(f"Fatal error: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 @app.command(name="extract-channel")
@@ -71,7 +74,7 @@ def extract_channel(
         extractor.extract_urls(channel_url, output_path)
     except Exception as e:
         logger.error(f"Fatal error: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 @app.command()
@@ -103,11 +106,11 @@ def download(
 
     except FileNotFoundError as e:
         logger.error(f"File not found: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
     except Exception as e:
         logger.error(f"Fatal error: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 @app.command(name="download-batch")
@@ -160,20 +163,20 @@ def download_batch(
         batch_downloader.download_all_playlists(
             directory=dir_path,
             pattern=pattern,
-            sort_order=sort  # type: ignore
+            sort_order=sort,  # type: ignore
         )
 
     except FileNotFoundError as e:
         logger.error(f"Error: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
     except NotADirectoryError as e:
         logger.error(f"Error: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
     except Exception as e:
         logger.error(f"Fatal error: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 def format_sync_diff(result: SyncResult) -> None:
@@ -241,11 +244,11 @@ def sync(
 
     except FileNotFoundError as e:
         logger.error(f"File not found: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
     except Exception as e:
         logger.error(f"Fatal error: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 def main() -> None:
@@ -255,7 +258,7 @@ def main() -> None:
     except KeyboardInterrupt:
         setup_logging()
         logger.warning("Interrupted by user")
-        raise typer.Exit(130)
+        raise typer.Exit(130) from None
 
 
 if __name__ == "__main__":

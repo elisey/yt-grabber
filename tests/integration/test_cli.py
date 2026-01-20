@@ -24,10 +24,7 @@ class TestExtractPlaylistCommand:
         mock_extractor = MagicMock()
         mock_extractor_class.return_value = mock_extractor
 
-        result = runner.invoke(
-            app,
-            ["extract-playlist", "PLtest123", str(output_file)]
-        )
+        result = runner.invoke(app, ["extract-playlist", "PLtest123", str(output_file)])
 
         assert result.exit_code == 0
         mock_extractor.extract_urls.assert_called_once()
@@ -42,10 +39,7 @@ class TestExtractPlaylistCommand:
         mock_extractor.extract_urls.side_effect = Exception("Extraction failed")
         mock_extractor_class.return_value = mock_extractor
 
-        result = runner.invoke(
-            app,
-            ["extract-playlist", "PLtest123", str(output_file)]
-        )
+        result = runner.invoke(app, ["extract-playlist", "PLtest123", str(output_file)])
 
         assert result.exit_code == 1
 
@@ -63,10 +57,7 @@ class TestExtractChannelCommand:
         mock_extractor = MagicMock()
         mock_extractor_class.return_value = mock_extractor
 
-        result = runner.invoke(
-            app,
-            ["extract-channel", "@TestChannel", str(output_file)]
-        )
+        result = runner.invoke(app, ["extract-channel", "@TestChannel", str(output_file)])
 
         assert result.exit_code == 0
         mock_extractor.extract_urls.assert_called_once()
@@ -81,10 +72,7 @@ class TestExtractChannelCommand:
         mock_extractor.extract_urls.side_effect = Exception("Extraction failed")
         mock_extractor_class.return_value = mock_extractor
 
-        result = runner.invoke(
-            app,
-            ["extract-channel", "@TestChannel", str(output_file)]
-        )
+        result = runner.invoke(app, ["extract-channel", "@TestChannel", str(output_file)])
 
         assert result.exit_code == 1
 
@@ -96,7 +84,9 @@ class TestDownloadCommand:
     @patch("yt_grabber.cli.VideoDownloader")
     @patch("yt_grabber.cli.PlaylistManager")
     @patch("yt_grabber.cli.Settings")
-    def test_download_success(self, mock_settings_class, mock_pm_class, mock_vd_class, tmp_path: Path):
+    def test_download_success(
+        self, mock_settings_class, mock_pm_class, mock_vd_class, tmp_path: Path
+    ):
         """Test successful download command."""
         # Create playlist file
         playlist_file = tmp_path / "test.txt"
@@ -135,7 +125,9 @@ class TestDownloadCommand:
     @patch("yt_grabber.cli.VideoDownloader")
     @patch("yt_grabber.cli.PlaylistManager")
     @patch("yt_grabber.cli.Settings")
-    def test_download_error(self, mock_settings_class, mock_pm_class, mock_vd_class, tmp_path: Path):
+    def test_download_error(
+        self, mock_settings_class, mock_pm_class, mock_vd_class, tmp_path: Path
+    ):
         """Test download with error during download."""
         # Create playlist file
         playlist_file = tmp_path / "test.txt"
@@ -182,11 +174,8 @@ https://example.com/video1
 
         # Setup mock
         from yt_grabber.models import SyncResult
-        mock_sync.return_value = SyncResult(
-            added_urls=[],
-            removed_urls=[],
-            header_changes=[]
-        )
+
+        mock_sync.return_value = SyncResult(added_urls=[], removed_urls=[], header_changes=[])
 
         result = runner.invoke(app, ["sync", str(playlist_file)])
 
@@ -245,7 +234,9 @@ class TestDownloadBatchCommand:
 
     @patch("yt_grabber.cli.BatchDownloader")
     @patch("yt_grabber.cli.Settings")
-    def test_download_batch_with_pattern(self, mock_settings_class, mock_batch_class, tmp_path: Path):
+    def test_download_batch_with_pattern(
+        self, mock_settings_class, mock_batch_class, tmp_path: Path
+    ):
         """Test batch download with pattern."""
         # Setup mocks
         mock_settings = MagicMock()
@@ -257,10 +248,7 @@ class TestDownloadBatchCommand:
         mock_batch = MagicMock()
         mock_batch_class.return_value = mock_batch
 
-        result = runner.invoke(
-            app,
-            ["download-batch", str(tmp_path), "--pattern", "gmm*.txt"]
-        )
+        result = runner.invoke(app, ["download-batch", str(tmp_path), "--pattern", "gmm*.txt"])
 
         assert result.exit_code == 0
         call_args = mock_batch.download_all_playlists.call_args
@@ -268,7 +256,9 @@ class TestDownloadBatchCommand:
 
     @patch("yt_grabber.cli.BatchDownloader")
     @patch("yt_grabber.cli.Settings")
-    def test_download_batch_with_sort_ascending(self, mock_settings_class, mock_batch_class, tmp_path: Path):
+    def test_download_batch_with_sort_ascending(
+        self, mock_settings_class, mock_batch_class, tmp_path: Path
+    ):
         """Test batch download with ascending sort."""
         # Setup mocks
         mock_settings = MagicMock()
@@ -280,10 +270,7 @@ class TestDownloadBatchCommand:
         mock_batch = MagicMock()
         mock_batch_class.return_value = mock_batch
 
-        result = runner.invoke(
-            app,
-            ["download-batch", str(tmp_path), "--sort", "asc"]
-        )
+        result = runner.invoke(app, ["download-batch", str(tmp_path), "--sort", "asc"])
 
         assert result.exit_code == 0
         call_args = mock_batch.download_all_playlists.call_args
@@ -291,7 +278,9 @@ class TestDownloadBatchCommand:
 
     @patch("yt_grabber.cli.BatchDownloader")
     @patch("yt_grabber.cli.Settings")
-    def test_download_batch_with_sort_descending(self, mock_settings_class, mock_batch_class, tmp_path: Path):
+    def test_download_batch_with_sort_descending(
+        self, mock_settings_class, mock_batch_class, tmp_path: Path
+    ):
         """Test batch download with descending sort."""
         # Setup mocks
         mock_settings = MagicMock()
@@ -303,10 +292,7 @@ class TestDownloadBatchCommand:
         mock_batch = MagicMock()
         mock_batch_class.return_value = mock_batch
 
-        result = runner.invoke(
-            app,
-            ["download-batch", str(tmp_path), "--sort", "desc"]
-        )
+        result = runner.invoke(app, ["download-batch", str(tmp_path), "--sort", "desc"])
 
         assert result.exit_code == 0
         call_args = mock_batch.download_all_playlists.call_args
@@ -318,10 +304,7 @@ class TestDownloadBatchCommand:
         mock_settings = MagicMock()
         mock_settings_class.return_value = mock_settings
 
-        result = runner.invoke(
-            app,
-            ["download-batch", str(tmp_path), "--sort", "invalid"]
-        )
+        result = runner.invoke(app, ["download-batch", str(tmp_path), "--sort", "invalid"])
 
         assert result.exit_code == 1
 

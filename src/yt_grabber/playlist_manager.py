@@ -5,7 +5,6 @@ from loguru import logger
 from yt_grabber.models import Playlist, Video
 from yt_grabber.playlist_header import PlaylistFileHeader
 
-
 DOWNLOADED_MARKER = "#"
 ADDED_MARKER = "A"
 REMOVED_MARKER = "D"
@@ -67,12 +66,7 @@ def load_playlist(file_path: Path) -> Playlist:
                 continue
             seen_videos.add(url)
 
-            videos.append(Video(
-                url=url,
-                downloaded=downloaded,
-                added=added,
-                removed=removed
-            ))
+            videos.append(Video(url=url, downloaded=downloaded, added=added, removed=removed))
 
     return Playlist(header=header, videos=videos)
 
@@ -105,10 +99,7 @@ def save_playlist(playlist: Playlist, file_path: Path) -> None:
             markers.append(DOWNLOADED_MARKER)
 
         # Build line: markers (space-separated) followed by URL
-        if markers:
-            line = " ".join(markers) + " " + video.url
-        else:
-            line = video.url
+        line = " ".join(markers) + " " + video.url if markers else video.url
 
         lines.append(line)
 

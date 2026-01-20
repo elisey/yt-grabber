@@ -1,12 +1,13 @@
 """Batch download module for processing multiple playlists."""
 
 from pathlib import Path
-from typing import List, Literal
+from typing import Literal
 
 from loguru import logger
 
 from yt_grabber.config import Settings
 from yt_grabber.downloader import VideoDownloader
+from yt_grabber.models import DownloadError
 from yt_grabber.notifier import TelegramNotifier
 from yt_grabber.playlist import PlaylistManager
 
@@ -24,15 +25,12 @@ class BatchDownloader:
         self.notifier = TelegramNotifier(
             bot_token=settings.telegram_bot_token,
             chat_id=settings.telegram_chat_id,
-            enabled=settings.telegram_notifications_enabled
+            enabled=settings.telegram_notifications_enabled,
         )
 
     def find_playlists(
-        self,
-        directory: Path,
-        pattern: str = "*.txt",
-        sort_order: Literal["asc", "desc"] = "asc"
-    ) -> List[Path]:
+        self, directory: Path, pattern: str = "*.txt", sort_order: Literal["asc", "desc"] = "asc"
+    ) -> list[Path]:
         """Find playlist files matching pattern.
 
         Args:
@@ -57,7 +55,7 @@ class BatchDownloader:
             return []
 
         # Sort files
-        reverse = (sort_order == "desc")
+        reverse = sort_order == "desc"
         sorted_files = sorted(files, reverse=reverse)
 
         logger.info(f"Found {len(sorted_files)} playlist files")
@@ -67,10 +65,7 @@ class BatchDownloader:
         return sorted_files
 
     def download_all_playlists(
-        self,
-        directory: Path,
-        pattern: str = "*.txt",
-        sort_order: Literal["asc", "desc"] = "asc"
+        self, directory: Path, pattern: str = "*.txt", sort_order: Literal["asc", "desc"] = "asc"
     ) -> None:
         """Download videos from all playlists matching pattern.
 
@@ -103,9 +98,7 @@ class BatchDownloader:
 
                 # Send playlist started notification
                 self.notifier.send_playlist_started_notification(
-                    playlist_name=playlist_name,
-                    current=idx,
-                    total=total_playlists
+                    playlist_name=playlist_name, current=idx, total=total_playlists
                 )
 
                 try:
@@ -114,39 +107,48 @@ class BatchDownloader:
                     downloader = VideoDownloader(self.settings, playlist_path)
 
                     # Check if this is the last playlist
-                    is_last_playlist = (idx == total_playlists)
+                    is_last_playlist = idx == total_playlists
 
                     # Download videos from this playlist
                     # Add delay after last video if not the last playlist
                     downloader.download_playlist(
-                        playlist_manager,
-                        delay_after_last=not is_last_playlist
+                        playlist_manager, delay_after_last=not is_last_playlist
                     )
 
                     successful_downloads += 1
                     logger.success(f"Completed playlist {idx}/{total_playlists}: {playlist_name}")
 
                 except Exception as e:
-                    logger.error(f"Failed to download playlist {idx}/{total_playlists}: {playlist_name}")
+                    logger.error(
+                        f"Failed to download playlist {idx}/{total_playlists}: {playlist_name}"
+                    )
                     logger.error(f"Error: {e}")
 
                     # Send batch error notification
-                    error_msg = f"Playlist: {playlist_name} ({idx}/{total_playlists})\nError: {str(e)}"
+                    error_msg = (
+                        f"Playlist: {playlist_name} ({idx}/{total_playlists})\nError: {str(e)}"
+                    )
                     self.notifier.send_batch_error_notification(error_msg)
 
                     # Halt batch processing on first failure
                     logger.error("Halting batch download due to error")
-                    raise
+                    raise DownloadError(
+                        f"Failed to download playlist '{playlist_name}': {e}"
+                    ) from e
 
             # All playlists downloaded successfully
             logger.success("=" * 60)
-            logger.success(f"Batch download complete!")
-            logger.success(f"Successfully downloaded {successful_downloads}/{total_playlists} playlists")
+            logger.success("Batch download complete!")
+            logger.success(
+                f"Successfully downloaded {successful_downloads}/{total_playlists} playlists"
+            )
             logger.success("=" * 60)
 
             # Send batch success notification
             self.notifier.send_batch_success_notification(successful_downloads)
 
         except Exception:
-            logger.error(f"Batch download failed after {successful_downloads}/{total_playlists} playlists")
+            logger.error(
+                f"Batch download failed after {successful_downloads}/{total_playlists} playlists"
+            )
             raise

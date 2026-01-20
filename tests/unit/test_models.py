@@ -3,7 +3,6 @@
 import pytest
 
 from yt_grabber.models import HeaderChange, Playlist, SyncResult, Video
-from yt_grabber.playlist_header import HeaderMetadata
 
 
 @pytest.mark.unit
@@ -131,9 +130,7 @@ class TestSyncResult:
 
     def test_sync_result_with_additions(self):
         """Test sync result with added videos."""
-        result = SyncResult(
-            added_urls=["https://example.com/video1", "https://example.com/video2"]
-        )
+        result = SyncResult(added_urls=["https://example.com/video1", "https://example.com/video2"])
 
         assert len(result.added_urls) == 2
         assert result.added_urls[0] == "https://example.com/video1"
@@ -142,9 +139,7 @@ class TestSyncResult:
 
     def test_sync_result_with_removals(self):
         """Test sync result with removed videos."""
-        result = SyncResult(
-            removed_urls=["https://example.com/video1"]
-        )
+        result = SyncResult(removed_urls=["https://example.com/video1"])
 
         assert result.added_urls == []
         assert len(result.removed_urls) == 1
@@ -167,9 +162,7 @@ class TestSyncResult:
 
     def test_sync_result_with_all_changes(self):
         """Test sync result with all types of changes."""
-        changes = [
-            HeaderChange(field="Title", old_value="Old", new_value="New")
-        ]
+        changes = [HeaderChange(field="Title", old_value="Old", new_value="New")]
         result = SyncResult(
             added_urls=["https://example.com/new"],
             removed_urls=["https://example.com/old"],

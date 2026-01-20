@@ -3,7 +3,6 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 import yt_dlp
 from loguru import logger
@@ -36,7 +35,7 @@ class BaseExtractor(ABC):
         """
         pass
 
-    def _extract_video_ids(self, url: str) -> Tuple[List[str], str]:
+    def _extract_video_ids(self, url: str) -> tuple[list[str], str]:
         """Extract video IDs and title from YouTube URL.
 
         Args:
@@ -124,13 +123,13 @@ class BaseExtractor(ABC):
                 f.write(f"{video_url}\n")
 
         # Log statistics
-        logger.success(f"Extraction completed")
-        logger.info(f"Statistics:")
+        logger.success("Extraction completed")
+        logger.info("Statistics:")
         logger.info(f"  Title: {title}")
         logger.info(f"  Videos found: {len(urls)}")
         logger.info(f"  Saved to: {output_file}")
 
-    def transform_urls(self, urls: List[str]) -> List[str]:
+    def transform_urls(self, urls: list[str]) -> list[str]:
         """Transform URL list before saving (e.g., reverse order).
 
         Args:

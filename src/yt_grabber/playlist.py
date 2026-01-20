@@ -1,11 +1,10 @@
 """Playlist file management for tracking downloaded videos."""
 
 from pathlib import Path
-from typing import List, Tuple
 
 from loguru import logger
 
-from yt_grabber.playlist_manager import save_playlist, load_playlist
+from yt_grabber.playlist_manager import load_playlist, save_playlist
 
 
 class PlaylistManager:
@@ -19,7 +18,7 @@ class PlaylistManager:
         """
         self.playlist_path = playlist_path
 
-    def read_urls(self) -> List[Tuple[str, int]]:
+    def read_urls(self) -> list[tuple[str, int]]:
         """Read undownloaded URLs from the playlist file with their indices.
 
         Returns:

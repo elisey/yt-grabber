@@ -1,8 +1,7 @@
 """Unit tests for downloader module."""
 
-import time
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, call, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -109,7 +108,9 @@ class TestVideoDownloader:
 
     @patch("yt_grabber.downloader.yt_dlp.YoutubeDL")
     @patch("yt_grabber.downloader.time.time")
-    def test_download_video_with_index(self, mock_time, mock_ydl_class, mock_settings, tmp_path: Path):
+    def test_download_video_with_index(
+        self, mock_time, mock_ydl_class, mock_settings, tmp_path: Path
+    ):
         """Test video download with indexing enabled."""
         # Setup time mock
         mock_time.side_effect = [0, 10]
@@ -149,7 +150,9 @@ class TestVideoDownloader:
 
     @patch("yt_grabber.downloader.yt_dlp.YoutubeDL")
     @patch("yt_grabber.downloader.time.sleep")
-    def test_download_video_retry_on_failure(self, mock_sleep, mock_ydl_class, mock_settings, tmp_path: Path):
+    def test_download_video_retry_on_failure(
+        self, mock_sleep, mock_ydl_class, mock_settings, tmp_path: Path
+    ):
         """Test retry mechanism on download failure."""
         # Setup settings with retry
         mock_settings.retry_attempts = 2
@@ -169,7 +172,7 @@ class TestVideoDownloader:
             {  # Second retry succeeds
                 "id": "test123",
                 "title": "Test Video",
-            }
+            },
         ]
 
         download_dir = Path("download") / "test"
@@ -191,7 +194,9 @@ class TestVideoDownloader:
 
     @patch("yt_grabber.downloader.yt_dlp.YoutubeDL")
     @patch("yt_grabber.downloader.time.sleep")
-    def test_download_video_all_retries_fail(self, mock_sleep, mock_ydl_class, mock_settings, tmp_path: Path):
+    def test_download_video_all_retries_fail(
+        self, mock_sleep, mock_ydl_class, mock_settings, tmp_path: Path
+    ):
         """Test download fails after all retry attempts."""
         # Setup settings with retry
         mock_settings.retry_attempts = 1
@@ -250,7 +255,9 @@ class TestVideoDownloader:
 
     @patch("yt_grabber.downloader.VideoDownloader.download_video")
     @patch("yt_grabber.downloader.VideoDownloader._random_delay")
-    def test_download_playlist_success(self, mock_delay, mock_download, mock_settings, tmp_path: Path):
+    def test_download_playlist_success(
+        self, mock_delay, mock_download, mock_settings, tmp_path: Path
+    ):
         """Test downloading all videos from playlist."""
         # Create playlist with 3 URLs
         playlist_content = """https://example.com/video1
@@ -261,6 +268,7 @@ https://example.com/video3
         playlist_path.write_text(playlist_content)
 
         from yt_grabber.playlist import PlaylistManager
+
         playlist_manager = PlaylistManager(playlist_path)
 
         downloader = VideoDownloader(mock_settings, playlist_path)
@@ -273,7 +281,9 @@ https://example.com/video3
 
     @patch("yt_grabber.downloader.VideoDownloader.download_video")
     @patch("yt_grabber.downloader.VideoDownloader._random_delay")
-    def test_download_playlist_with_delay_after_last(self, mock_delay, mock_download, mock_settings, tmp_path: Path):
+    def test_download_playlist_with_delay_after_last(
+        self, mock_delay, mock_download, mock_settings, tmp_path: Path
+    ):
         """Test delay_after_last parameter."""
         playlist_content = """https://example.com/video1
 https://example.com/video2
@@ -282,6 +292,7 @@ https://example.com/video2
         playlist_path.write_text(playlist_content)
 
         from yt_grabber.playlist import PlaylistManager
+
         playlist_manager = PlaylistManager(playlist_path)
 
         downloader = VideoDownloader(mock_settings, playlist_path)
@@ -291,7 +302,9 @@ https://example.com/video2
         assert mock_delay.call_count == 2
 
     @patch("yt_grabber.downloader.VideoDownloader.download_video")
-    def test_download_playlist_error_stops_process(self, mock_download, mock_settings, tmp_path: Path):
+    def test_download_playlist_error_stops_process(
+        self, mock_download, mock_settings, tmp_path: Path
+    ):
         """Test that error stops the download process."""
         # Make download fail on second video
         mock_download.side_effect = [None, Exception("Download failed"), None]
@@ -304,11 +317,14 @@ https://example.com/video3
         playlist_path.write_text(playlist_content)
 
         from yt_grabber.playlist import PlaylistManager
+
         playlist_manager = PlaylistManager(playlist_path)
 
         downloader = VideoDownloader(mock_settings, playlist_path)
 
-        with pytest.raises(Exception):
+        from yt_grabber.models import DownloadError
+
+        with pytest.raises(DownloadError):
             downloader.download_playlist(playlist_manager)
 
         # Only first two should be attempted

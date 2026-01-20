@@ -1,7 +1,6 @@
 """Telegram notification module."""
 
 import asyncio
-from typing import Optional
 
 from loguru import logger
 from telegram import Bot
@@ -35,11 +34,7 @@ class TelegramNotifier:
         """
         try:
             bot = Bot(token=self.bot_token)
-            await bot.send_message(
-                chat_id=self.chat_id,
-                text=message,
-                parse_mode="Markdown"
-            )
+            await bot.send_message(chat_id=self.chat_id, text=message, parse_mode="Markdown")
             logger.debug("Telegram notification sent successfully")
         except TelegramError as e:
             logger.error(f"Failed to send Telegram notification: {e}")
@@ -57,7 +52,7 @@ class TelegramNotifier:
             return
 
         message = (
-            "✅ *Download Complete*\n\n"
+            f"✅ *Download Complete*\n\n"
             f"Playlist: `{playlist_name}`\n"
             f"Videos downloaded: *{total_videos}*"
         )
@@ -80,18 +75,16 @@ class TelegramNotifier:
         # Escape markdown special characters in error message
         escaped_error = error_message.replace("_", "\\_").replace("*", "\\*").replace("`", "\\`")
 
-        message = (
-            "❌ *Download Failed*\n\n"
-            f"Playlist: `{playlist_name}`\n"
-            f"Error: {escaped_error}"
-        )
+        message = f"❌ *Download Failed*\n\nPlaylist: `{playlist_name}`\nError: {escaped_error}"
 
         try:
             asyncio.run(self._send_message(message))
         except Exception as e:
             logger.error(f"Error in send_error_notification: {e}")
 
-    def send_playlist_started_notification(self, playlist_name: str, current: int, total: int) -> None:
+    def send_playlist_started_notification(
+        self, playlist_name: str, current: int, total: int
+    ) -> None:
         """Send notification when starting a new playlist.
 
         Args:
@@ -102,10 +95,7 @@ class TelegramNotifier:
         if not self.enabled:
             return
 
-        message = (
-            f"📥 *Starting Download* \\[{current}/{total}]\n\n"
-            f"Playlist: `{playlist_name}`"
-        )
+        message = f"📥 *Starting Download* \\[{current}/{total}]\n\nPlaylist: `{playlist_name}`"
 
         try:
             asyncio.run(self._send_message(message))
@@ -121,10 +111,7 @@ class TelegramNotifier:
         if not self.enabled:
             return
 
-        message = (
-            "✅ *Batch Complete*\n\n"
-            f"Successfully downloaded *{total_playlists}* playlists"
-        )
+        message = f"✅ *Batch Complete*\n\nSuccessfully downloaded *{total_playlists}* playlists"
 
         try:
             asyncio.run(self._send_message(message))
@@ -143,10 +130,7 @@ class TelegramNotifier:
         # Escape markdown special characters
         escaped_context = error_context.replace("_", "\\_").replace("*", "\\*").replace("`", "\\`")
 
-        message = (
-            "❌ *Batch Download Failed*\n\n"
-            f"{escaped_context}"
-        )
+        message = f"❌ *Batch Download Failed*\n\n{escaped_context}"
 
         try:
             asyncio.run(self._send_message(message))
