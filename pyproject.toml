@@ -36,8 +36,22 @@ Issues = "https://github.com/elisey/yt-grabber/issues"
 [project.scripts]
 yt-grabber = "yt_grabber.cli:main"
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "pytest-asyncio>=0.23.0",
+]
+
 [tool.uv]
 package = true
+dev-dependencies = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "pytest-asyncio>=0.23.0",
+]
 
 [build-system]
 requires = ["hatchling"]
