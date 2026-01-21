@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-01-21
+
+### Fixed
+- **HTTP 503 error classification:** Fixed bug where "HTTP Error 503: Service Unavailable" was incorrectly classified as non-retryable error. HTTP 503 errors are now properly treated as retryable (temporary server issues) and will trigger the retry mechanism with linear backoff.
+- **Error pattern specificity:** Refined non-retryable error patterns to be more specific (`"unavailable"` → `"video unavailable"`) to avoid false positives with HTTP errors while maintaining detection of actual video unavailability.
+
 ## [0.3.1] - 2026-01-21
 
 ### Added
