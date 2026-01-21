@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-01-21
+
+### Added
+- **CLI version command:** Added `--version` / `-v` flag to display current version
+
+### Changed
+- **Error log location:** `error_log.csv` is now saved in the current directory (where the utility is launched) instead of inside each playlist's download directory for easier access and centralized error tracking
+- **Version management:** Version is now defined only in `pyproject.toml` and automatically loaded via `importlib.metadata` (no need to update `__init__.py` manually)
+
+### Fixed
+- Added `error_log.csv` to `.gitignore` to prevent committing error logs
+
 ## [0.3.0] - 2026-01-21
 
 ### Added
