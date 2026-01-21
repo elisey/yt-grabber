@@ -118,12 +118,12 @@ class VideoDownloader:
             "login required",
             "authentication",
             "private video",
-            "unavailable",
+            "video unavailable",
             "removed",
             "members-only",
             "payment",
             "deleted",
-            "not available",
+            "video is not available",
         ]
 
         return any(pattern in error_lower for pattern in non_retryable_patterns)

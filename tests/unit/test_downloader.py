@@ -473,7 +473,7 @@ https://example.com/video3
 
         assert downloader._is_non_retryable_error("Video unavailable")
         assert downloader._is_non_retryable_error("This video has been removed")
-        assert downloader._is_non_retryable_error("Video not available")
+        assert downloader._is_non_retryable_error("Video is not available")
         assert downloader._is_non_retryable_error("Private video")
         assert downloader._is_non_retryable_error("Members-only content")
 
@@ -485,6 +485,7 @@ https://example.com/video3
         downloader = VideoDownloader(mock_settings, playlist_path)
 
         assert not downloader._is_non_retryable_error("HTTP 403")
+        assert not downloader._is_non_retryable_error("HTTP Error 503: Service Unavailable")
         assert not downloader._is_non_retryable_error("Connection timeout")
         assert not downloader._is_non_retryable_error("Network error")
 
