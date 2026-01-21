@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-01-21
+
+### Added
+- **Development tooling:**
+  - Added ruff for code formatting and linting (replaces Black, isort, flake8)
+  - Added mypy for static type checking with strict mode
+  - Added pre-commit hooks for automated code quality checks
+  - Added Taskfile for task management (lint, format, type-check, test, ci, fix)
+- **Smart error handling for non-retryable errors:**
+  - Automatic detection of errors that won't benefit from retry (age verification, login required, private videos, etc.)
+  - Special notification when video is skipped due to non-retryable error
+  - Error logging to CSV with classification (RETRYABLE vs NON_RETRYABLE)
+  - Videos with non-retryable errors are marked as downloaded and skipped in future runs
+  - Download process continues after skipping non-retryable errors (doesn't halt entire playlist)
+- **Enhanced batch error notifications:**
+  - Batch failure notifications now include the URL of the video that caused the failure
+
+### Changed
+- **Linear backoff for retry mechanism:**
+  - Retry delays now increase proportionally to attempt number (5s, 10s, 15s, etc.)
+  - Gives rate-limited services more time to reset between attempts
+- **Improved test coverage:**
+  - Added comprehensive tests for non-retryable error handling
+  - Added tests for linear backoff retry mechanism
+  - Added tests for Telegram notifications
+  - Achieved 94% test coverage (167 tests)
+
+### Fixed
+- Bot detection errors (e.g., "confirm you're not a bot") are now treated as retryable (was incorrectly classified as non-retryable)
+- Removed pytest warnings from async notification tests
+
+### Technical
+- Code quality improvements with ruff (line length: 100, Python 3.12 target)
+- Type safety with mypy strict mode
+- Pre-commit hooks ensure code quality before commits
+- Custom exception `NonRetryableError` for better error handling
+
 ## [0.2.1] - 2026-01-20
 
 ### Changed
