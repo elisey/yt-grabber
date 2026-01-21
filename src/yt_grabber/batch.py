@@ -124,11 +124,16 @@ class BatchDownloader:
                     )
                     logger.error(f"Error: {e}")
 
+                    # Extract URL from DownloadError if available
+                    failed_url = None
+                    if isinstance(e, DownloadError) and hasattr(e, "url"):
+                        failed_url = e.url
+
                     # Send batch error notification
                     error_msg = (
                         f"Playlist: {playlist_name} ({idx}/{total_playlists})\nError: {str(e)}"
                     )
-                    self.notifier.send_batch_error_notification(error_msg)
+                    self.notifier.send_batch_error_notification(error_msg, failed_url)
 
                     # Halt batch processing on first failure
                     logger.error("Halting batch download due to error")

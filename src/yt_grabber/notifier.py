@@ -118,11 +118,14 @@ class TelegramNotifier:
         except Exception as e:
             logger.error(f"Error in send_batch_success_notification: {e}")
 
-    def send_batch_error_notification(self, error_context: str) -> None:
+    def send_batch_error_notification(
+        self, error_context: str, failed_url: str | None = None
+    ) -> None:
         """Send batch download error notification.
 
         Args:
             error_context: Error context including playlist info
+            failed_url: Optional URL of the video that failed
         """
         if not self.enabled:
             return
@@ -131,6 +134,11 @@ class TelegramNotifier:
         escaped_context = error_context.replace("_", "\\_").replace("*", "\\*").replace("`", "\\`")
 
         message = f"❌ *Batch Download Failed*\n\n{escaped_context}"
+
+        # Add failed URL if available
+        if failed_url:
+            escaped_url = failed_url.replace("_", "\\_").replace("*", "\\*")
+            message += f"\n\nFailed URL: {escaped_url}"
 
         try:
             asyncio.run(self._send_message(message))

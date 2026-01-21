@@ -6,6 +6,23 @@ from yt_grabber.playlist_header import HeaderMetadata
 class DownloadError(Exception):
     """Exception raised when video or playlist download fails."""
 
+    def __init__(self, message: str, url: str | None = None):
+        """Initialize download error.
+
+        Args:
+            message: Error message
+            url: Optional URL of the video that failed
+        """
+        super().__init__(message)
+        self.url = url
+
+
+class NonRetryableError(Exception):
+    """Exception raised when video download fails with a non-retryable error.
+
+    Examples: age verification, login required, private video, etc.
+    """
+
     pass
 
 
