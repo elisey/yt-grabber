@@ -188,14 +188,17 @@ class VideoDownloader:
             logger.warning("No URLs to download")
             return
 
+        # Load playlist to get total video count (source of truth)
+        from yt_grabber.playlist_manager import load_playlist
+
+        playlist = load_playlist(self.playlist_path)
+        total_videos = len(playlist.videos)
+
         logger.info(f"Starting download of {len(urls_with_indices)} videos")
 
         try:
             for progress_idx, (url, playlist_index) in enumerate(urls_with_indices, start=1):
-                logger.info(
-                    f"Progress: {progress_idx}/{len(urls_with_indices)} "
-                    f"(playlist position: {playlist_index})"
-                )
+                logger.info(f"Progress: {playlist_index}/{total_videos}")
 
                 try:
                     # Download the video using its position in full playlist

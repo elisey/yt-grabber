@@ -77,9 +77,11 @@ def save_playlist(playlist: Playlist, file_path: Path) -> None:
 
     # Add header if present
     if playlist.header:
+        # Always recalculate total_videos from actual playlist (source of truth)
+        actual_total = len(playlist.videos)
         lines.append(f": Source URL: {playlist.header.source_url}")
         lines.append(f": Extraction Timestamp: {playlist.header.extraction_timestamp}")
-        lines.append(f": Total Videos: {playlist.header.total_videos}")
+        lines.append(f": Total Videos: {actual_total}")
         lines.append(f": Source Type: {playlist.header.source_type}")
         lines.append(f": Title: {playlist.header.title}")
         lines.append(f": Extractor Version: {playlist.header.extractor_version}")
