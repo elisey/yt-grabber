@@ -144,3 +144,34 @@ class TelegramNotifier:
             asyncio.run(self._send_message(message))
         except Exception as e:
             logger.error(f"Error in send_batch_error_notification: {e}")
+
+    def send_video_skipped_notification(
+        self, url: str, error_message: str, playlist_name: str
+    ) -> None:
+        """Send notification when video is skipped due to non-retryable error.
+
+        Args:
+            url: Video URL that was skipped
+            error_message: Error message text
+            playlist_name: Name of the playlist
+        """
+        if not self.enabled:
+            return
+
+        # Escape markdown special characters
+        escaped_error = error_message.replace("_", "\\_").replace("*", "\\*").replace("`", "\\`")
+        escaped_url = url.replace("_", "\\_").replace("*", "\\*")
+
+        message = (
+            f"⚠️ *Video Skipped*\n\n"
+            f"Playlist: `{playlist_name}`\n"
+            f"Reason: Non-retryable error\n\n"
+            f"URL: {escaped_url}\n"
+            f"Error: {escaped_error}\n\n"
+            f"The video has been marked as downloaded to skip it in future runs."
+        )
+
+        try:
+            asyncio.run(self._send_message(message))
+        except Exception as e:
+            logger.error(f"Error in send_video_skipped_notification: {e}")

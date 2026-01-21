@@ -10,7 +10,7 @@ import yt_dlp
 from loguru import logger
 
 from yt_grabber.config import Settings
-from yt_grabber.models import DownloadError
+from yt_grabber.models import DownloadError, NonRetryableError
 from yt_grabber.notifier import TelegramNotifier
 from yt_grabber.playlist import PlaylistManager
 
@@ -38,6 +38,10 @@ class VideoDownloader:
         # Initialize metadata CSV file
         self.metadata_file = self.download_dir / "metadata.csv"
         self._initialize_metadata_file()
+
+        # Initialize error log CSV file
+        self.error_log_file = self.download_dir / "error_log.csv"
+        self._initialize_error_log_file()
 
         # Initialize Telegram notifier
         self.notifier = TelegramNotifier(
@@ -67,6 +71,62 @@ class VideoDownloader:
         with open(self.metadata_file, "a", newline="") as f:
             writer = csv.writer(f)
             writer.writerow([url, filename, timestamp])
+
+    def _initialize_error_log_file(self) -> None:
+        """Initialize error log CSV file with headers if it doesn't exist."""
+        if not self.error_log_file.exists():
+            with open(self.error_log_file, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(
+                    ["timestamp", "playlist_name", "url", "error_type", "error_message"]
+                )
+            logger.info(f"Created error log file: {self.error_log_file}")
+
+    def _log_error_to_csv(
+        self, url: str, error_type: str, error_message: str, playlist_name: str
+    ) -> None:
+        """Log error to CSV file.
+
+        Args:
+            url: Video URL that failed
+            error_type: Either "NON_RETRYABLE" or "RETRYABLE"
+            error_message: Error message text
+            playlist_name: Name of the playlist
+        """
+        timestamp = datetime.now().isoformat()
+        with open(self.error_log_file, "a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([timestamp, playlist_name, url, error_type, error_message])
+
+    def _is_non_retryable_error(self, error_message: str) -> bool:
+        """Detect if error is non-retryable (e.g., age verification, login required).
+
+        Args:
+            error_message: Error message from yt-dlp exception
+
+        Returns:
+            True if error should not be retried
+        """
+        error_lower = error_message.lower()
+
+        non_retryable_patterns = [
+            "sign in",
+            "age",
+            "confirm your age",
+            # "confirm you're not a bot",
+            # "bot",
+            "login required",
+            "authentication",
+            "private video",
+            "unavailable",
+            "removed",
+            "members-only",
+            "payment",
+            "deleted",
+            "not available",
+        ]
+
+        return any(pattern in error_lower for pattern in non_retryable_patterns)
 
     def _get_ydl_opts(self) -> dict[str, object]:
         """Get yt-dlp options based on settings.
@@ -149,12 +209,20 @@ class VideoDownloader:
                     return
 
             except Exception as e:
-                logger.error(f"Failed to download {url}: {e}")
+                error_msg = str(e)
+                logger.error(f"Failed to download {url}: {error_msg}")
+
+                # Check if error is non-retryable
+                if self._is_non_retryable_error(error_msg):
+                    logger.warning(f"Detected non-retryable error: {error_msg}")
+                    # Raise immediately with special marker
+                    raise NonRetryableError(error_msg) from e
 
                 # Check if we should retry
                 if attempt < max_attempts:
                     logger.warning(f"Waiting {self.settings.retry_delay} seconds before retry...")
-                    time.sleep(self.settings.retry_delay)
+                    # Linear backoff
+                    time.sleep(self.settings.retry_delay * attempt)
                 else:
                     # All attempts failed
                     logger.error(f"All {max_attempts} attempts failed for {url}")
@@ -217,15 +285,38 @@ class VideoDownloader:
                         # Delay after last video if requested (batch mode)
                         self._random_delay()
 
+                except NonRetryableError as e:
+                    # Non-retryable error - skip video and continue
+                    error_msg = str(e)
+                    logger.warning(f"Skipping video due to non-retryable error: {error_msg}")
+
+                    # Log to error CSV
+                    self._log_error_to_csv(url, "NON_RETRYABLE", error_msg, playlist_name)
+
+                    # Send special notification
+                    self.notifier.send_video_skipped_notification(url, error_msg, playlist_name)
+
+                    # Mark as downloaded to skip in future runs
+                    playlist_manager.mark_as_downloaded(url)
+                    logger.info(f"Marked video as downloaded (skipped): {url}")
+
+                    # Continue to next video (don't raise)
+
                 except Exception as e:
+                    # Regular error - stop the process
+                    error_msg = str(e)
                     logger.error(
-                        f"Error downloading video {progress_idx}/{len(urls_with_indices)}: {e}"
+                        f"Error downloading video "
+                        f"{progress_idx}/{len(urls_with_indices)}: {error_msg}"
                     )
                     logger.error("Stopping download process due to error")
 
+                    # Log to error CSV
+                    self._log_error_to_csv(url, "RETRYABLE", error_msg, playlist_name)
+
                     # Send error notification
-                    self.notifier.send_error_notification(str(e), playlist_name)
-                    raise DownloadError(f"Failed to download video: {e}") from e
+                    self.notifier.send_error_notification(error_msg, playlist_name)
+                    raise DownloadError(f"Failed to download video: {error_msg}", url=url) from e
 
             logger.success(f"All {len(urls_with_indices)} videos downloaded successfully!")
 
