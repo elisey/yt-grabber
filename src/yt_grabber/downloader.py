@@ -39,8 +39,8 @@ class VideoDownloader:
         self.metadata_file = self.download_dir / "metadata.csv"
         self._initialize_metadata_file()
 
-        # Initialize error log CSV file
-        self.error_log_file = self.download_dir / "error_log.csv"
+        # Initialize error log CSV file in current directory
+        self.error_log_file = Path("error_log.csv")
         self._initialize_error_log_file()
 
         # Initialize Telegram notifier
