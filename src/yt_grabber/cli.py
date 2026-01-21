@@ -6,6 +6,7 @@ from pathlib import Path
 import typer
 from loguru import logger
 
+from yt_grabber import __version__
 from yt_grabber.batch import BatchDownloader
 from yt_grabber.config import Settings
 from yt_grabber.downloader import VideoDownloader
@@ -15,6 +16,28 @@ from yt_grabber.playlist import PlaylistManager
 from yt_grabber.sync import sync_playlist
 
 app = typer.Typer(help="YouTube video downloader and content extractor")
+
+
+def version_callback(value: bool) -> None:
+    """Print version and exit."""
+    if value:
+        typer.echo(f"yt-grabber version {__version__}")
+        raise typer.Exit()
+
+
+@app.callback()
+def common_options(
+    version: bool = typer.Option(
+        None,
+        "--version",
+        "-v",
+        callback=version_callback,
+        is_eager=True,
+        help="Show version and exit",
+    ),
+) -> None:
+    """YouTube video downloader and content extractor."""
+    pass
 
 
 def setup_logging() -> None:

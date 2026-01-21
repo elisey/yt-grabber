@@ -105,7 +105,7 @@ When releasing a new version:
 
 1. **Update Version Number**
    - Edit `pyproject.toml` - update the `version` field
-   - Edit `src/yt_grabber/__init__.py` - update `__version__`
+   - Note: `__version__` in `src/yt_grabber/__init__.py` is automatically loaded from `pyproject.toml` using `importlib.metadata`
 
 2. **Update CHANGELOG.md**
    - Add a new section for the version
@@ -113,7 +113,7 @@ When releasing a new version:
 
 3. **Commit Changes**
    ```bash
-   git add pyproject.toml src/yt_grabber/__init__.py CHANGELOG.md
+   git add pyproject.toml CHANGELOG.md
    git commit -m "chore: bump version to X.Y.Z"
    git tag vX.Y.Z
    git push origin main --tags
